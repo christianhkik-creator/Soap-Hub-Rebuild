@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f6f2e9;
+  --foreground: #2a2420;
+
+  --card: #ffffff;
+  --card-foreground: #2a2420;
+
+  --muted: #eee7d9;
+  --muted-foreground: #756a5c;
+
+  --border: #e3d9c6;
+  --input: #e3d9c6;
+  --ring: #6b7a4f;
+
+  --header: #1c1712;
+  --header-foreground: #f6f2e9;
+
+  --primary: #4a5a32;
+  --primary-foreground: #f6f2e9;
+
+  --secondary: #eee7d9;
+  --secondary-foreground: #2a2420;
+
+  --accent: #eee7d9;
+  --accent-foreground: #2a2420;
+
+  --destructive: #a4402c;
+  --destructive-foreground: #fdf7f2;
+
+  --success: #4a5a32;
+  --success-foreground: #f6f2e9;
+  --warning: #b5751f;
+  --warning-foreground: #fdf7f2;
+
+  /* Recipe-builder category accents */
+  --cat-1: #5c7a3a;
+  --cat-1-foreground: #f6f2e9;
+  --cat-2: #2f3b52;
+  --cat-2-foreground: #f6f2e9;
+  --cat-3: #7a5230;
+  --cat-3-foreground: #f6f2e9;
+  --cat-4: #7a3b52;
+  --cat-4-foreground: #f6f2e9;
+
+  --radius: 0.625rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-header: var(--header);
+  --color-header-foreground: var(--header-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-cat-1: var(--cat-1);
+  --color-cat-1-foreground: var(--cat-1-foreground);
+  --color-cat-2: var(--cat-2);
+  --color-cat-2-foreground: var(--cat-2-foreground);
+  --color-cat-3: var(--cat-3);
+  --color-cat-3-foreground: var(--cat-3-foreground);
+  --color-cat-4: var(--cat-4);
+  --color-cat-4-foreground: var(--cat-4-foreground);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --font-sans: var(--font-body);
+  --font-serif: var(--font-display);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-display), Georgia, serif;
+}
