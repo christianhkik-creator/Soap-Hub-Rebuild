@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useRecipe } from "@/context/recipe-context";
-import { costPerFlOzApprox, costPerGram, gramsToUnit, unitToGrams } from "@/lib/soap-math";
+import { APPROX_OIL_DENSITY_G_PER_ML, costPerFlOzApprox, costPerGram, gramsToUnit, unitToGrams } from "@/lib/soap-math";
 
 type WeightUnit = "g" | "oz" | "lb" | "kg";
 
@@ -146,9 +146,10 @@ export default function CostAnalysisPage() {
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
                     {price > 0 ? (
-                      <>
-                        ${costPerGram(price, "lb").toFixed(4)}/g · ${costPerFlOzApprox(price, "lb").toFixed(2)}/fl oz
-                      </>
+                      <span title={`Assumes ${(oil.densityGPerMl ?? APPROX_OIL_DENSITY_G_PER_ML).toFixed(2)} g/mL density`}>
+                        ${costPerGram(price, "lb").toFixed(4)}/g · $
+                        {costPerFlOzApprox(price, "lb", oil.densityGPerMl).toFixed(2)}/fl oz
+                      </span>
                     ) : (
                       "—"
                     )}

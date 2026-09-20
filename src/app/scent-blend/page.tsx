@@ -1,7 +1,8 @@
 "use client";
 
-import { AlertTriangle, Info } from "lucide-react";
+import { AlertTriangle, Info, Pencil, Trash2 } from "lucide-react";
 
+import { AddScentDialog } from "@/components/add-scent-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,10 +20,11 @@ const NOTE_BAR_CLASSES: Record<ScentNote, string> = {
 };
 
 export default function ScentBlendPage() {
-  const { recipe, setRecipe, scentBlendAnalysis } = useRecipe();
+  const { recipe, setRecipe, allScents, deleteCustomScent, scentBlendAnalysis } = useRecipe();
   const { totalPercent, noteComposition, longevityMonths, recommendedUsagePercentOfOils, warnings } =
     scentBlendAnalysis;
 
+  const customScents = allScents.filter((s) => s.isCustom);
   const off = Math.round((totalPercent - 100) * 10) / 10;
 
   return (
@@ -34,6 +36,57 @@ export default function ScentBlendPage() {
           derived from each scent&apos;s molecular weight and chemical class.
         </p>
       </div>
+
+      {customScents.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Your Custom Scents</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {customScents.map((scent) => (
+              <div
+                key={scent.id}
+                className="flex items-center justify-between gap-3 rounded-md border border-border px-3 py-2 text-sm"
+              >
+                <span>
+                  <span className="font-medium">{scent.name}</span>{" "}
+                  <span className="text-xs text-muted-foreground">
+                    ({SCENT_NOTE_LABELS[scent.note].title})
+                  </span>
+                </span>
+                <div className="flex items-center gap-2">
+                  <AddScentDialog
+                    editingScent={scent}
+                    trigger={
+                      <button
+                        type="button"
+                        className="text-muted-foreground hover:text-foreground"
+                        aria-label={`Edit ${scent.name}`}
+                      >
+                        <Pencil className="size-3.5" />
+                      </button>
+                    }
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (
+                        window.confirm(`Delete ${scent.name}? This also removes it from your current recipe.`)
+                      ) {
+                        deleteCustomScent(scent.id);
+                      }
+                    }}
+                    className="text-muted-foreground hover:text-destructive"
+                    aria-label={`Delete ${scent.name}`}
+                  >
+                    <Trash2 className="size-3.5" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         {NOTES.map((note) => (

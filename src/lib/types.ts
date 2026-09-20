@@ -69,6 +69,8 @@ export interface Oil {
   category: OilCategory;
   /** grams of NaOH required per gram of this oil at 0% superfat */
   sapNaOH: number;
+  /** g/mL in its measured (liquid/melted) state — used for the cost-per-fl-oz estimate. Falls back to a generic oil-density approximation when unset. */
+  densityGPerMl?: number;
   fattyAcids: FattyAcidProfile;
   usageRateMin: number;
   usageRateMax: number;

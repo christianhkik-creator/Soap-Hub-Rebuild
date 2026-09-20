@@ -6,6 +6,10 @@ import type { Oil } from "@/lib/types";
  * a single number impossible to justify, a representative midpoint is used
  * and the range is noted in `sources`. Coconut (0.178) and Tallow (0.140)
  * were specifically confirmed against the user's own real recipe.
+ *
+ * `densityGPerMl` values are approximate liquid/melted-state densities used
+ * only for the Cost Analysis fl-oz estimate — they're commonly-cited
+ * reference figures, not lab measurements of a specific lot.
  */
 export const OILS: Oil[] = [
   {
@@ -14,6 +18,7 @@ export const OILS: Oil[] = [
     botanicalName: "Olea europaea",
     category: "conditioning",
     sapNaOH: 0.135,
+    densityGPerMl: 0.91,
     fattyAcids: { oleic: 70, palmitic: 12, stearic: 3, linoleic: 9, linolenic: 0.5 },
     usageRateMin: 10,
     usageRateMax: 100,
@@ -37,6 +42,7 @@ export const OILS: Oil[] = [
     botanicalName: "Helianthus annuus (high-oleic variety)",
     category: "conditioning",
     sapNaOH: 0.135,
+    densityGPerMl: 0.92,
     fattyAcids: { oleic: 80, linoleic: 6.5, palmitic: 5, stearic: 4 },
     usageRateMin: 10,
     usageRateMax: 40,
@@ -60,6 +66,7 @@ export const OILS: Oil[] = [
     botanicalName: "Persea americana",
     category: "conditioning",
     sapNaOH: 0.133,
+    densityGPerMl: 0.91,
     fattyAcids: { oleic: 65, palmitic: 13, stearic: 1, linoleic: 10.5 },
     usageRateMin: 10,
     usageRateMax: 30,
@@ -83,6 +90,7 @@ export const OILS: Oil[] = [
     botanicalName: "Cocos nucifera · 76° refined",
     category: "cleansing",
     sapNaOH: 0.178,
+    densityGPerMl: 0.92,
     fattyAcids: { lauric: 49, myristic: 18.5, palmitic: 9.5, oleic: 7, linoleic: 1.5 },
     usageRateMin: 10,
     usageRateMax: 100,
@@ -111,6 +119,7 @@ export const OILS: Oil[] = [
     botanicalName: "Attalea speciosa",
     category: "cleansing",
     sapNaOH: 0.176,
+    densityGPerMl: 0.92,
     fattyAcids: { lauric: 44, myristic: 13, palmitic: 9, stearic: 3, oleic: 13.5, linoleic: 3 },
     usageRateMin: 10,
     usageRateMax: 33,
@@ -130,6 +139,7 @@ export const OILS: Oil[] = [
     botanicalName: "Vitellaria paradoxa · refined",
     category: "hardness",
     sapNaOH: 0.129,
+    densityGPerMl: 0.91,
     fattyAcids: { stearic: 43, oleic: 46, palmitic: 5, linoleic: 4 },
     usageRateMin: 5,
     usageRateMax: 30,
@@ -154,6 +164,7 @@ export const OILS: Oil[] = [
     botanicalName: "Theobroma cacao",
     category: "hardness",
     sapNaOH: 0.138,
+    densityGPerMl: 0.905,
     fattyAcids: { stearic: 36, oleic: 32.5, palmitic: 26.5, linoleic: 2.5 },
     usageRateMin: 5,
     usageRateMax: 15,
@@ -178,6 +189,7 @@ export const OILS: Oil[] = [
     botanicalName: "Sus scrofa domesticus · rendered pork fat",
     category: "hardness",
     sapNaOH: 0.140,
+    densityGPerMl: 0.90,
     fattyAcids: { oleic: 45, palmitic: 27.5, stearic: 15, linoleic: 8 },
     usageRateMin: 20,
     usageRateMax: 50,
@@ -201,6 +213,7 @@ export const OILS: Oil[] = [
     botanicalName: "Bos taurus · rendered beef fat",
     category: "hardness",
     sapNaOH: 0.140,
+    densityGPerMl: 0.90,
     fattyAcids: { oleic: 38.5, palmitic: 26, stearic: 18, linoleic: 4.5, myristic: 3.25, lauric: 1 },
     usageRateMin: 20,
     usageRateMax: 80,
@@ -225,6 +238,7 @@ export const OILS: Oil[] = [
     botanicalName: "Ricinus communis",
     category: "lather-boost",
     sapNaOH: 0.128,
+    densityGPerMl: 0.96,
     fattyAcids: { ricinoleic: 90, oleic: 4, linoleic: 5.5 },
     usageRateMin: 5,
     usageRateMax: 10,

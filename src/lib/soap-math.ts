@@ -467,16 +467,20 @@ export function costPerGram(price: number, unit: PriceUnit): number {
 }
 
 /**
- * Most soaping oils fall around 0.90-0.93 g/mL; 0.92 is used as a single
- * approximate density so a per-fl-oz cost can be shown alongside the
- * (accurate) per-gram cost. This is explicitly an approximation, not a
- * per-oil measured density.
+ * Most soaping oils fall around 0.90-0.93 g/mL; 0.92 is the fallback used
+ * when a specific oil has no `densityGPerMl` set. Pass that oil's own
+ * density when known (see src/data/oils.ts) for a more accurate estimate —
+ * castor oil in particular (~0.96) is notably denser than the rest.
  */
 export const APPROX_OIL_DENSITY_G_PER_ML = 0.92;
 const ML_PER_FL_OZ = 29.5735;
 
-export function costPerFlOzApprox(price: number, unit: PriceUnit): number {
-  const gramsPerFlOz = ML_PER_FL_OZ * APPROX_OIL_DENSITY_G_PER_ML;
+export function costPerFlOzApprox(
+  price: number,
+  unit: PriceUnit,
+  densityGPerMl: number = APPROX_OIL_DENSITY_G_PER_ML
+): number {
+  const gramsPerFlOz = ML_PER_FL_OZ * densityGPerMl;
   return costPerGram(price, unit) * gramsPerFlOz;
 }
 

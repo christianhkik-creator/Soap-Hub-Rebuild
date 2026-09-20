@@ -24,6 +24,11 @@ Open [http://localhost:3000](http://localhost:3000). Without Supabase
 configured, saved recipes fall back to this browser's `localStorage`
 automatically — the app works fully without any setup.
 
+Run `npm test` to check the calculation engine — the suite is pinned
+against a real SoapCalc recipe export (see `src/lib/soap-math.test.ts`),
+so a future change that breaks the math fails a test instead of silently
+shipping a wrong lye weight.
+
 ## Wiring up Supabase (optional, for cross-device saved recipes)
 
 1. Create a free project at [supabase.com](https://supabase.com).

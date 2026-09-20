@@ -37,91 +37,108 @@ function slugify(name: string) {
     .replace(/(^-|-$)/g, "");
 }
 
-export function AddScentDialog({ defaultNote }: { defaultNote?: ScentNote }) {
+function fieldsFromScent(scent: Scent | undefined, defaultNote?: ScentNote) {
+  return {
+    name: scent?.name ?? "",
+    botanicalName: scent?.botanicalName ?? "",
+    note: scent?.note ?? defaultNote ?? ("heart" as ScentNote),
+    molecularWeight: String(scent?.molecularWeight ?? 150),
+    dominantClass: scent?.dominantClass ?? ("blend" as ChemicalClass),
+    majorConstituents: scent?.majorConstituents ?? "",
+    usageRateMin: String(scent?.usageRateMin ?? 3),
+    usageRateMax: String(scent?.usageRateMax ?? 5),
+    longevityMin: String(scent?.longevityMonths[0] ?? 2),
+    longevityMax: String(scent?.longevityMonths[1] ?? 5),
+    priceTier: String(scent?.priceTier ?? 2),
+  };
+}
+
+export function AddScentDialog({
+  defaultNote,
+  editingScent,
+  trigger,
+}: {
+  defaultNote?: ScentNote;
+  /** When set, the dialog edits this scent in place instead of creating a new one. */
+  editingScent?: Scent;
+  /** Custom trigger element (e.g. an edit icon button). Defaults to a "+ Add Scent" button. */
+  trigger?: React.ReactNode;
+}) {
   const { addCustomScent } = useRecipe();
   const [open, setOpen] = React.useState(false);
-  const [name, setName] = React.useState("");
-  const [botanicalName, setBotanicalName] = React.useState("");
-  const [note, setNote] = React.useState<ScentNote>(defaultNote ?? "heart");
-  const [molecularWeight, setMolecularWeight] = React.useState("150");
-  const [dominantClass, setDominantClass] = React.useState<ChemicalClass>("blend");
-  const [majorConstituents, setMajorConstituents] = React.useState("");
-  const [usageRateMin, setUsageRateMin] = React.useState("3");
-  const [usageRateMax, setUsageRateMax] = React.useState("5");
-  const [longevityMin, setLongevityMin] = React.useState("2");
-  const [longevityMax, setLongevityMax] = React.useState("5");
-  const [priceTier, setPriceTier] = React.useState("2");
+  const [fields, setFields] = React.useState(() => fieldsFromScent(editingScent, defaultNote));
 
-  function reset() {
-    setName("");
-    setBotanicalName("");
-    setNote(defaultNote ?? "heart");
-    setMolecularWeight("150");
-    setDominantClass("blend");
-    setMajorConstituents("");
-    setUsageRateMin("3");
-    setUsageRateMax("5");
-    setLongevityMin("2");
-    setLongevityMax("5");
-    setPriceTier("2");
+  // Re-sync form fields whenever the dialog opens, so editing a different
+  // scent (or re-opening "Add") always starts from the right values.
+  function handleOpenChange(next: boolean) {
+    if (next) setFields(fieldsFromScent(editingScent, defaultNote));
+    setOpen(next);
+  }
+
+  function set<K extends keyof ReturnType<typeof fieldsFromScent>>(
+    key: K,
+    value: ReturnType<typeof fieldsFromScent>[K]
+  ) {
+    setFields((prev) => ({ ...prev, [key]: value }));
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!fields.name.trim()) return;
 
     const scent: Scent = {
-      id: `custom-${slugify(name)}-${Date.now()}`,
-      name: name.trim(),
-      botanicalName: botanicalName.trim() || undefined,
-      note,
-      molecularWeight: parseFloat(molecularWeight) || 0,
-      dominantClass,
-      majorConstituents: majorConstituents.trim() || "Not yet documented.",
-      usageRateMin: parseFloat(usageRateMin) || 0,
-      usageRateMax: parseFloat(usageRateMax) || 0,
-      longevityMonths: [parseFloat(longevityMin) || 0, parseFloat(longevityMax) || 0],
+      id: editingScent?.id ?? `custom-${slugify(fields.name)}-${Date.now()}`,
+      name: fields.name.trim(),
+      botanicalName: fields.botanicalName.trim() || undefined,
+      note: fields.note,
+      molecularWeight: parseFloat(fields.molecularWeight) || 0,
+      dominantClass: fields.dominantClass,
+      majorConstituents: fields.majorConstituents.trim() || "Not yet documented.",
+      usageRateMin: parseFloat(fields.usageRateMin) || 0,
+      usageRateMax: parseFloat(fields.usageRateMax) || 0,
+      longevityMonths: [parseFloat(fields.longevityMin) || 0, parseFloat(fields.longevityMax) || 0],
       // Starts with no warnings — add them only once you've verified a
       // specific behavior (accelerant, discoloration, sensitizer) yourself,
       // keeping the warning system data-driven rather than assumed.
-      warnings: [],
-      priceTier: (parseInt(priceTier, 10) || 2) as 1 | 2 | 3,
+      warnings: editingScent?.warnings ?? [],
+      priceTier: (parseInt(fields.priceTier, 10) || 2) as 1 | 2 | 3,
       isCustom: true,
     };
 
     addCustomScent(scent);
-    reset();
     setOpen(false);
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Plus /> Add Scent
-        </Button>
+        {trigger ?? (
+          <Button variant="outline" size="sm">
+            <Plus /> Add Scent
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Add a custom scent</DialogTitle>
+          <DialogTitle>{editingScent ? `Edit ${editingScent.name}` : "Add a custom scent"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="scent-name">Name</Label>
-              <Input id="scent-name" value={name} onChange={(e) => setName(e.target.value)} required />
+              <Input id="scent-name" value={fields.name} onChange={(e) => set("name", e.target.value)} required />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="scent-botanical">Botanical name (if EO)</Label>
               <Input
                 id="scent-botanical"
-                value={botanicalName}
-                onChange={(e) => setBotanicalName(e.target.value)}
+                value={fields.botanicalName}
+                onChange={(e) => set("botanicalName", e.target.value)}
               />
             </div>
             <div className="space-y-1.5">
               <Label>Note</Label>
-              <Select value={note} onValueChange={(v) => setNote(v as ScentNote)}>
+              <Select value={fields.note} onValueChange={(v) => set("note", v as ScentNote)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -139,13 +156,13 @@ export function AddScentDialog({ defaultNote }: { defaultNote?: ScentNote }) {
                 id="scent-mw"
                 type="number"
                 step="0.1"
-                value={molecularWeight}
-                onChange={(e) => setMolecularWeight(e.target.value)}
+                value={fields.molecularWeight}
+                onChange={(e) => set("molecularWeight", e.target.value)}
               />
             </div>
             <div className="space-y-1.5 sm:col-span-2">
               <Label>Dominant chemical class</Label>
-              <Select value={dominantClass} onValueChange={(v) => setDominantClass(v as ChemicalClass)}>
+              <Select value={fields.dominantClass} onValueChange={(v) => set("dominantClass", v as ChemicalClass)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -163,8 +180,8 @@ export function AddScentDialog({ defaultNote }: { defaultNote?: ScentNote }) {
               <Input
                 id="scent-constituents"
                 placeholder="e.g. Linalool, Linalyl acetate"
-                value={majorConstituents}
-                onChange={(e) => setMajorConstituents(e.target.value)}
+                value={fields.majorConstituents}
+                onChange={(e) => set("majorConstituents", e.target.value)}
               />
             </div>
           </div>
@@ -175,8 +192,8 @@ export function AddScentDialog({ defaultNote }: { defaultNote?: ScentNote }) {
               <Input
                 id="scent-usage-min"
                 type="number"
-                value={usageRateMin}
-                onChange={(e) => setUsageRateMin(e.target.value)}
+                value={fields.usageRateMin}
+                onChange={(e) => set("usageRateMin", e.target.value)}
               />
             </div>
             <div className="space-y-1.5">
@@ -184,8 +201,8 @@ export function AddScentDialog({ defaultNote }: { defaultNote?: ScentNote }) {
               <Input
                 id="scent-usage-max"
                 type="number"
-                value={usageRateMax}
-                onChange={(e) => setUsageRateMax(e.target.value)}
+                value={fields.usageRateMax}
+                onChange={(e) => set("usageRateMax", e.target.value)}
               />
             </div>
             <div className="space-y-1.5">
@@ -193,8 +210,8 @@ export function AddScentDialog({ defaultNote }: { defaultNote?: ScentNote }) {
               <Input
                 id="scent-longevity-min"
                 type="number"
-                value={longevityMin}
-                onChange={(e) => setLongevityMin(e.target.value)}
+                value={fields.longevityMin}
+                onChange={(e) => set("longevityMin", e.target.value)}
               />
             </div>
             <div className="space-y-1.5">
@@ -202,13 +219,13 @@ export function AddScentDialog({ defaultNote }: { defaultNote?: ScentNote }) {
               <Input
                 id="scent-longevity-max"
                 type="number"
-                value={longevityMax}
-                onChange={(e) => setLongevityMax(e.target.value)}
+                value={fields.longevityMax}
+                onChange={(e) => set("longevityMax", e.target.value)}
               />
             </div>
             <div className="space-y-1.5">
               <Label>Price tier</Label>
-              <Select value={priceTier} onValueChange={setPriceTier}>
+              <Select value={fields.priceTier} onValueChange={(v) => set("priceTier", v)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -222,7 +239,7 @@ export function AddScentDialog({ defaultNote }: { defaultNote?: ScentNote }) {
           </div>
 
           <DialogFooter>
-            <Button type="submit">Add scent to library</Button>
+            <Button type="submit">{editingScent ? "Save changes" : "Add scent to library"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

@@ -37,6 +37,8 @@ interface RecipeContextValue {
   scentsById: Map<string, Scent>;
   addCustomOil: (oil: Oil) => void;
   addCustomScent: (scent: Scent) => void;
+  deleteCustomOil: (oilId: string) => void;
+  deleteCustomScent: (scentId: string) => void;
 
   addOil: (oilId: string, percent?: number) => void;
   updateOilPercent: (oilId: string, percent: number) => void;
@@ -123,6 +125,15 @@ export function RecipeProvider({ children }: { children: React.ReactNode }) {
   }, []);
   const addCustomScent = React.useCallback((scent: Scent) => {
     setCustomScents((prev) => [...prev.filter((s) => s.id !== scent.id), scent]);
+  }, []);
+  // Also drops the oil/scent from the active recipe, if it's currently in use.
+  const deleteCustomOil = React.useCallback((oilId: string) => {
+    setCustomOils((prev) => prev.filter((o) => o.id !== oilId));
+    setRecipe((prev) => ({ ...prev, oils: prev.oils.filter((o) => o.oilId !== oilId) }));
+  }, []);
+  const deleteCustomScent = React.useCallback((scentId: string) => {
+    setCustomScents((prev) => prev.filter((s) => s.id !== scentId));
+    setRecipe((prev) => ({ ...prev, scents: prev.scents.filter((s) => s.scentId !== scentId) }));
   }, []);
 
   const loadRecipe = React.useCallback((next: Recipe) => setRecipe(next), []);
@@ -247,6 +258,8 @@ export function RecipeProvider({ children }: { children: React.ReactNode }) {
     scentsById,
     addCustomOil,
     addCustomScent,
+    deleteCustomOil,
+    deleteCustomScent,
     addOil,
     updateOilPercent,
     removeOil,
