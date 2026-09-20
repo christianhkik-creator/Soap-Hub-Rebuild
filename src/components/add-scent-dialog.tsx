@@ -26,6 +26,7 @@ const CHEMICAL_CLASSES: { value: ChemicalClass; label: string }[] = [
   { value: "sesquiterpene", label: "Sesquiterpene" },
   { value: "sesquiterpene-alcohol", label: "Sesquiterpene alcohol" },
   { value: "phenol", label: "Phenol" },
+  { value: "oxide", label: "Oxide (e.g. cineole)" },
   { value: "blend", label: "Blend / unknown (e.g. fragrance oil)" },
 ];
 

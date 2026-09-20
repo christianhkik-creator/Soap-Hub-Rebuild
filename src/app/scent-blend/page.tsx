@@ -201,9 +201,11 @@ export default function ScentBlendPage() {
                     className={`flex gap-2 rounded-md border px-3 py-2 text-sm ${
                       warning.severity === "danger"
                         ? "border-destructive/30 bg-destructive/10 text-destructive"
-                        : warning.severity === "success"
-                          ? "border-success/30 bg-success/10 text-success"
-                          : "border-border bg-muted text-muted-foreground"
+                        : warning.severity === "warning"
+                          ? "border-warning/30 bg-warning/10 text-warning"
+                          : warning.severity === "success"
+                            ? "border-success/30 bg-success/10 text-success"
+                            : "border-border bg-muted text-muted-foreground"
                     }`}
                   >
                     <AlertTriangle className="size-4 shrink-0 translate-y-0.5" />

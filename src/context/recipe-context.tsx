@@ -2,9 +2,10 @@
 
 import * as React from "react";
 
+import { ADDITIVES, ADDITIVES_BY_ID } from "@/data/additives";
 import { OILS, OILS_BY_ID } from "@/data/oils";
 import { SCENTS, SCENTS_BY_ID } from "@/data/scents";
-import { createDefaultRecipe } from "@/lib/default-recipe";
+import { createDefaultRecipe, normalizeRecipe } from "@/lib/default-recipe";
 import {
   analyzeScentBlend,
   blendFattyAcids,
@@ -19,11 +20,20 @@ import {
   toWeightedOils,
   toWeightedScents,
 } from "@/lib/soap-math";
-import type { Oil, Recipe, RecipeOilEntry, RecipeScentEntry, Scent } from "@/lib/types";
+import type {
+  Additive,
+  Oil,
+  Recipe,
+  RecipeAdditiveEntry,
+  RecipeOilEntry,
+  RecipeScentEntry,
+  Scent,
+} from "@/lib/types";
 
 const DRAFT_KEY = "soap-hub:draft-recipe";
 const CUSTOM_OILS_KEY = "soap-hub:custom-oils";
 const CUSTOM_SCENTS_KEY = "soap-hub:custom-scents";
+const CUSTOM_ADDITIVES_KEY = "soap-hub:custom-additives";
 
 interface RecipeContextValue {
   recipe: Recipe;
@@ -33,12 +43,16 @@ interface RecipeContextValue {
 
   allOils: Oil[];
   allScents: Scent[];
+  allAdditives: Additive[];
   oilsById: Map<string, Oil>;
   scentsById: Map<string, Scent>;
+  additivesById: Map<string, Additive>;
   addCustomOil: (oil: Oil) => void;
   addCustomScent: (scent: Scent) => void;
+  addCustomAdditive: (additive: Additive) => void;
   deleteCustomOil: (oilId: string) => void;
   deleteCustomScent: (scentId: string) => void;
+  deleteCustomAdditive: (additiveId: string) => void;
 
   addOil: (oilId: string, percent?: number) => void;
   updateOilPercent: (oilId: string, percent: number) => void;
@@ -47,6 +61,10 @@ interface RecipeContextValue {
   addScent: (scentId: string, percent?: number) => void;
   updateScentPercent: (scentId: string, percent: number) => void;
   removeScent: (scentId: string) => void;
+
+  addAdditive: (additiveId: string, percent?: number) => void;
+  updateAdditivePercent: (additiveId: string, percent: number) => void;
+  removeAdditive: (additiveId: string) => void;
 
   // Derived
   fattyAcidBlend: ReturnType<typeof blendFattyAcids>;
@@ -81,6 +99,7 @@ export function RecipeProvider({ children }: { children: React.ReactNode }) {
   const [recipe, setRecipe] = React.useState<Recipe>(createDefaultRecipe);
   const [customOils, setCustomOils] = React.useState<Oil[]>([]);
   const [customScents, setCustomScents] = React.useState<Scent[]>([]);
+  const [customAdditives, setCustomAdditives] = React.useState<Additive[]>([]);
   const [hydrated, setHydrated] = React.useState(false);
 
   React.useEffect(() => {
@@ -88,9 +107,10 @@ export function RecipeProvider({ children }: { children: React.ReactNode }) {
     // localStorage, so this can't run in the initializer without causing a
     // hydration mismatch — see the comment above).
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setRecipe(loadJson(DRAFT_KEY, createDefaultRecipe()));
+    setRecipe(normalizeRecipe(loadJson(DRAFT_KEY, createDefaultRecipe())));
     setCustomOils(loadJson(CUSTOM_OILS_KEY, []));
     setCustomScents(loadJson(CUSTOM_SCENTS_KEY, []));
+    setCustomAdditives(loadJson(CUSTOM_ADDITIVES_KEY, []));
     setHydrated(true);
   }, []);
 
@@ -106,9 +126,14 @@ export function RecipeProvider({ children }: { children: React.ReactNode }) {
     if (!hydrated) return;
     window.localStorage.setItem(CUSTOM_SCENTS_KEY, JSON.stringify(customScents));
   }, [customScents, hydrated]);
+  React.useEffect(() => {
+    if (!hydrated) return;
+    window.localStorage.setItem(CUSTOM_ADDITIVES_KEY, JSON.stringify(customAdditives));
+  }, [customAdditives, hydrated]);
 
   const allOils = React.useMemo(() => [...OILS, ...customOils], [customOils]);
   const allScents = React.useMemo(() => [...SCENTS, ...customScents], [customScents]);
+  const allAdditives = React.useMemo(() => [...ADDITIVES, ...customAdditives], [customAdditives]);
   const oilsById = React.useMemo(() => {
     const map = new Map(OILS_BY_ID);
     for (const oil of customOils) map.set(oil.id, oil);
@@ -119,6 +144,11 @@ export function RecipeProvider({ children }: { children: React.ReactNode }) {
     for (const scent of customScents) map.set(scent.id, scent);
     return map;
   }, [customScents]);
+  const additivesById = React.useMemo(() => {
+    const map = new Map(ADDITIVES_BY_ID);
+    for (const additive of customAdditives) map.set(additive.id, additive);
+    return map;
+  }, [customAdditives]);
 
   const addCustomOil = React.useCallback((oil: Oil) => {
     setCustomOils((prev) => [...prev.filter((o) => o.id !== oil.id), oil]);
@@ -126,7 +156,10 @@ export function RecipeProvider({ children }: { children: React.ReactNode }) {
   const addCustomScent = React.useCallback((scent: Scent) => {
     setCustomScents((prev) => [...prev.filter((s) => s.id !== scent.id), scent]);
   }, []);
-  // Also drops the oil/scent from the active recipe, if it's currently in use.
+  const addCustomAdditive = React.useCallback((additive: Additive) => {
+    setCustomAdditives((prev) => [...prev.filter((a) => a.id !== additive.id), additive]);
+  }, []);
+  // Also drops the oil/scent/additive from the active recipe, if it's currently in use.
   const deleteCustomOil = React.useCallback((oilId: string) => {
     setCustomOils((prev) => prev.filter((o) => o.id !== oilId));
     setRecipe((prev) => ({ ...prev, oils: prev.oils.filter((o) => o.oilId !== oilId) }));
@@ -135,8 +168,12 @@ export function RecipeProvider({ children }: { children: React.ReactNode }) {
     setCustomScents((prev) => prev.filter((s) => s.id !== scentId));
     setRecipe((prev) => ({ ...prev, scents: prev.scents.filter((s) => s.scentId !== scentId) }));
   }, []);
+  const deleteCustomAdditive = React.useCallback((additiveId: string) => {
+    setCustomAdditives((prev) => prev.filter((a) => a.id !== additiveId));
+    setRecipe((prev) => ({ ...prev, additives: prev.additives.filter((a) => a.additiveId !== additiveId) }));
+  }, []);
 
-  const loadRecipe = React.useCallback((next: Recipe) => setRecipe(next), []);
+  const loadRecipe = React.useCallback((next: Recipe) => setRecipe(normalizeRecipe(next)), []);
   const resetRecipe = React.useCallback(() => setRecipe(createDefaultRecipe()), []);
 
   const addOil = React.useCallback((oilId: string, percent = 10) => {
@@ -171,6 +208,24 @@ export function RecipeProvider({ children }: { children: React.ReactNode }) {
   }, []);
   const removeScent = React.useCallback((scentId: string) => {
     setRecipe((prev) => ({ ...prev, scents: prev.scents.filter((s) => s.scentId !== scentId) }));
+  }, []);
+
+  const addAdditive = React.useCallback((additiveId: string, percent = 1) => {
+    setRecipe((prev) => {
+      if (prev.additives.some((a) => a.additiveId === additiveId)) return prev;
+      return { ...prev, additives: [...prev.additives, { additiveId, percent }] };
+    });
+  }, []);
+  const updateAdditivePercent = React.useCallback((additiveId: string, percent: number) => {
+    setRecipe((prev) => ({
+      ...prev,
+      additives: prev.additives.map((a): RecipeAdditiveEntry =>
+        a.additiveId === additiveId ? { ...a, percent } : a
+      ),
+    }));
+  }, []);
+  const removeAdditive = React.useCallback((additiveId: string) => {
+    setRecipe((prev) => ({ ...prev, additives: prev.additives.filter((a) => a.additiveId !== additiveId) }));
   }, []);
 
   const weightedOils = React.useMemo(
@@ -241,10 +296,11 @@ export function RecipeProvider({ children }: { children: React.ReactNode }) {
         recipe,
         oilsById,
         scentsById,
+        additivesById,
         naohGrams: lyeWater.naohGrams,
         estimatedBarCount: yieldResult.estimatedBarCount,
       }),
-    [recipe, oilsById, scentsById, lyeWater.naohGrams, yieldResult.estimatedBarCount]
+    [recipe, oilsById, scentsById, additivesById, lyeWater.naohGrams, yieldResult.estimatedBarCount]
   );
 
   const value: RecipeContextValue = {
@@ -254,18 +310,25 @@ export function RecipeProvider({ children }: { children: React.ReactNode }) {
     resetRecipe,
     allOils,
     allScents,
+    allAdditives,
     oilsById,
     scentsById,
+    additivesById,
     addCustomOil,
     addCustomScent,
+    addCustomAdditive,
     deleteCustomOil,
     deleteCustomScent,
+    deleteCustomAdditive,
     addOil,
     updateOilPercent,
     removeOil,
     addScent,
     updateScentPercent,
     removeScent,
+    addAdditive,
+    updateAdditivePercent,
+    removeAdditive,
     fattyAcidBlend,
     sapNaOHBlend,
     lyeWater,

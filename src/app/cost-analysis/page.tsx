@@ -3,6 +3,7 @@
 import { Plus, X } from "lucide-react";
 import { useState } from "react";
 
+import { RecipeAdditivePanel } from "@/components/recipe-additive-panel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -249,9 +250,11 @@ export default function CostAnalysisPage() {
             </div>
           )}
 
+          <RecipeAdditivePanel />
+
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-sm font-medium">Colorant / Additives</span>
+              <span className="text-sm font-medium">Other Costs (packaging, labels, etc.)</span>
               <Button
                 size="sm"
                 variant="outline"

@@ -113,13 +113,14 @@ export type ChemicalClass =
   | "sesquiterpene"
   | "sesquiterpene-alcohol"
   | "phenol"
+  | "oxide"
   | "blend";
 
 export type WarningEvidence = "documented" | "practitioner-reported";
 
 export interface ScentWarning {
-  type: "accelerant" | "discoloration" | "sensitizer" | "ifra-caution";
-  severity: "danger" | "info" | "success";
+  type: "accelerant" | "discoloration" | "sensitizer" | "ifra-caution" | "toxicity";
+  severity: "danger" | "warning" | "info" | "success";
   label: string;
   message: string;
   evidence: WarningEvidence;
@@ -139,6 +140,41 @@ export interface Scent {
   longevityMonths: [number, number];
   warnings: ScentWarning[];
   priceTier: 1 | 2 | 3;
+  /** Framing that doesn't fit a discrete warning — sourcing/authenticity caveats, absolute-vs-EO distinctions, species ambiguity, etc. */
+  description?: string;
+  sources?: DataSource[];
+  isCustom?: boolean;
+}
+
+export type AdditiveCategory = "colorant" | "clay" | "exfoliant" | "botanical" | "preservative" | "other";
+
+export const ADDITIVE_CATEGORY_LABELS: Record<AdditiveCategory, string> = {
+  colorant: "Colorant",
+  clay: "Clay",
+  exfoliant: "Exfoliant",
+  botanical: "Botanical",
+  preservative: "Preservative",
+  other: "Other",
+};
+
+/**
+ * Non-oil, non-fragrance ingredients: clays, colorants, exfoliants, and
+ * similar. These don't participate in the lye/fatty-acid chemistry the way
+ * oils do — usage rate is simply a % of total oil weight added at trace.
+ */
+export interface Additive {
+  id: string;
+  name: string;
+  category: AdditiveCategory;
+  usageRateMin: number;
+  usageRateMax: number;
+  usageNote?: string;
+  description: string;
+  effects: string;
+  benefits: string;
+  /** Safety notes and marketing-claim caveats (e.g. "detox" claims are overstated for a rinse-off product) — shown prominently in the UI, not buried. */
+  disclaimers?: string[];
+  priceTier: 1 | 2 | 3;
   sources?: DataSource[];
   isCustom?: boolean;
 }
@@ -153,6 +189,11 @@ export interface RecipeScentEntry {
   percent: number;
 }
 
+export interface RecipeAdditiveEntry {
+  additiveId: string;
+  percent: number;
+}
+
 export interface Recipe {
   id?: string;
   name: string;
@@ -161,11 +202,13 @@ export interface Recipe {
   lyeConcentrationPercent: number;
   oils: RecipeOilEntry[];
   scents: RecipeScentEntry[];
+  additives: RecipeAdditiveEntry[];
   batchScentWeightGrams: number;
   barWeightGrams: number;
   cureWaterLossPercent: number;
   oilPricesPerLb: Record<string, number>;
   scentPricesPer100g: Record<string, number>;
+  additivePricesPerLb: Record<string, number>;
   lyePricePerLb: number;
   additionalCosts: { label: string; amount: number }[];
   createdAt?: string;

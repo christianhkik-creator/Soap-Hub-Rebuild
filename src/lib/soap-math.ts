@@ -1,4 +1,5 @@
 import type {
+  Additive,
   FattyAcidKey,
   FattyAcidProfile,
   Oil,
@@ -567,6 +568,8 @@ export interface BatchCosts {
   lyeCost: number;
   scentCosts: { scent: Scent; percent: number; weightGrams: number; price: number; cost: number }[];
   totalScentCost: number;
+  additiveCosts: { additive: Additive; percent: number; weightGrams: number; price: number; cost: number }[];
+  totalAdditiveCost: number;
   additionalTotal: number;
   totalBatchCost: number;
   costPerBar: number;
@@ -576,12 +579,14 @@ export function calculateBatchCosts({
   recipe,
   oilsById,
   scentsById,
+  additivesById,
   naohGrams,
   estimatedBarCount,
 }: {
   recipe: Recipe;
   oilsById: Map<string, Oil>;
   scentsById: Map<string, Scent>;
+  additivesById: Map<string, Additive>;
   naohGrams: number;
   estimatedBarCount: number;
 }): BatchCosts {
@@ -615,11 +620,39 @@ export function calculateBatchCosts({
     .filter((x): x is NonNullable<typeof x> => x !== null);
   const totalScentCost = scentCosts.reduce((s, o) => s + o.cost, 0);
 
+  const additiveCosts = recipe.additives
+    .map((entry) => {
+      const additive = additivesById.get(entry.additiveId);
+      if (!additive) return null;
+      const weightGrams = (recipe.totalOilWeightGrams * entry.percent) / 100;
+      const price = recipe.additivePricesPerLb[additive.id] ?? 0;
+      return {
+        additive,
+        percent: entry.percent,
+        weightGrams,
+        price,
+        cost: costForWeight(weightGrams, price, "lb"),
+      };
+    })
+    .filter((x): x is NonNullable<typeof x> => x !== null);
+  const totalAdditiveCost = additiveCosts.reduce((s, a) => s + a.cost, 0);
+
   const additionalTotal = recipe.additionalCosts.reduce((s, c) => s + (c.amount || 0), 0);
-  const totalBatchCost = totalOilCost + lyeCost + totalScentCost + additionalTotal;
+  const totalBatchCost = totalOilCost + lyeCost + totalScentCost + totalAdditiveCost + additionalTotal;
   const costPerBar = estimatedBarCount > 0 ? totalBatchCost / estimatedBarCount : 0;
 
-  return { oilCosts, totalOilCost, lyeCost, scentCosts, totalScentCost, additionalTotal, totalBatchCost, costPerBar };
+  return {
+    oilCosts,
+    totalOilCost,
+    lyeCost,
+    scentCosts,
+    totalScentCost,
+    additiveCosts,
+    totalAdditiveCost,
+    additionalTotal,
+    totalBatchCost,
+    costPerBar,
+  };
 }
 
 export function toWeightedOils(entries: RecipeOilEntry[], oilsById: Map<string, Oil>): WeightedOil[] {

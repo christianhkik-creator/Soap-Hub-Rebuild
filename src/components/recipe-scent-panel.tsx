@@ -83,6 +83,7 @@ export function RecipeScentPanel({ note }: { note: ScentNote }) {
         )}
         {addedEntries.map(({ entry, scent }) => {
           const accelerant = scent.warnings.find((w) => w.type === "accelerant");
+          const dangerWarning = scent.warnings.find((w) => w.severity === "danger");
           return (
             <div key={scent.id} className="space-y-1.5">
               <div className="flex items-center justify-between text-sm">
@@ -91,6 +92,11 @@ export function RecipeScentPanel({ note }: { note: ScentNote }) {
                   {accelerant && (
                     <span className="rounded-full bg-warning/15 px-2 py-0.5 text-[10px] font-semibold uppercase text-warning">
                       Strong Accelerator
+                    </span>
+                  )}
+                  {dangerWarning && (
+                    <span className="rounded-full bg-destructive/15 px-2 py-0.5 text-[10px] font-semibold uppercase text-destructive">
+                      {dangerWarning.label}
                     </span>
                   )}
                 </span>
@@ -106,6 +112,9 @@ export function RecipeScentPanel({ note }: { note: ScentNote }) {
                   </button>
                 </div>
               </div>
+              {scent.description && (
+                <p className="text-xs italic text-muted-foreground">{scent.description}</p>
+              )}
               <Slider
                 value={[entry.percent]}
                 max={100}
