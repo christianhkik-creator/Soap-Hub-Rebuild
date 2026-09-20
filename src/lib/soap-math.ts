@@ -55,6 +55,26 @@ export const QUALITY_RANGES = {
   creamy: [16, 48] as [number, number],
   iodine: [41, 70] as [number, number],
   ins: [136, 165] as [number, number],
+  /**
+   * Not a SoapCalc-standard metric. Combined linoleic + linolenic (PUFA)
+   * content is the well-established driver of oxidative rancidity ("DOS" —
+   * Dreaded Orange Spots) in cured soap; the fact that PUFAs autoxidize is
+   * uncontested lipid chemistry, but the specific 0-10 "safe" cutoff below
+   * is a practical soap-community guideline, not a lab-derived constant.
+   */
+  dosRisk: [0, 10] as [number, number],
+};
+
+/** Fixed display ceilings so the bars read consistently recipe to recipe, instead of rescaling. */
+export const QUALITY_AXIS_MAX: Record<keyof typeof QUALITY_RANGES, number> = {
+  hardness: 80,
+  cleansing: 70,
+  conditioning: 100,
+  bubbly: 70,
+  creamy: 70,
+  iodine: 120,
+  ins: 200,
+  dosRisk: 40,
 };
 
 /** Weighted-average fatty acid profile for a recipe. Percents should sum to ~100. */
@@ -84,6 +104,7 @@ export interface QualityScores {
   creamy: number;
   iodine: number;
   ins: number;
+  dosRisk: number;
   saturatedPercent: number;
   unsaturatedPercent: number;
 }
@@ -111,6 +132,7 @@ export function calculateQualityScores(blend: FattyAcidProfile, sapNaOHBlend: nu
 
   const kohSapMgPerG = sapNaOHBlend * NAOH_TO_KOH_FACTOR * 1000;
   const ins = kohSapMgPerG - iodine;
+  const dosRisk = g("linoleic") + g("linolenic");
 
   const saturatedPercent = SATURATED_KEYS.reduce((s, k) => s + g(k), 0);
   const unsaturatedPercent = UNSATURATED_KEYS.reduce((s, k) => s + g(k), 0);
@@ -123,9 +145,132 @@ export function calculateQualityScores(blend: FattyAcidProfile, sapNaOHBlend: nu
     creamy,
     iodine,
     ins,
+    dosRisk,
     saturatedPercent,
     unsaturatedPercent,
   };
+}
+
+export interface RecipeInsight {
+  severity: "success" | "info" | "warning" | "danger";
+  message: string;
+}
+
+/**
+ * Compares the rounded (displayed) value against a range, not the raw
+ * float — every score here is shown to 0 decimals, so a raw 11.83 that
+ * displays as "12" must not be treated as below a "12-22" range.
+ */
+function inRange(value: number, [min, max]: [number, number]) {
+  const rounded = Math.round(value);
+  return rounded >= min && rounded <= max;
+}
+
+/**
+ * Translates the raw quality numbers into plain-English guidance. Ranges
+ * used here are the same QUALITY_RANGES bands shown on the bars; the
+ * commentary (cure time, shelf life, texture) reflects standard soaping
+ * practice rather than a separate data source.
+ */
+export function getRecipeInsights(scores: QualityScores, blend: FattyAcidProfile): RecipeInsight[] {
+  const insights: RecipeInsight[] = [];
+  const oleic = blend.oleic ?? 0;
+
+  if (oleic >= 45) {
+    insights.push({
+      severity: "info",
+      message: `Elevated oleic (${oleic.toFixed(0)}%). Allow at least 6-8 weeks of cure for proper bar firmness and lather development.`,
+    });
+  }
+
+  const [, dosMax] = QUALITY_RANGES.dosRisk;
+  if (scores.dosRisk <= dosMax) {
+    insights.push({
+      severity: "success",
+      message: `Low DOS risk — only ${scores.dosRisk.toFixed(0)}% linoleic/linolenic. Stable formula. Expected shelf life: 12+ months.`,
+    });
+  } else if (scores.dosRisk <= dosMax * 2) {
+    insights.push({
+      severity: "warning",
+      message: `Moderate DOS risk — ${scores.dosRisk.toFixed(0)}% linoleic/linolenic. Use within 6-9 months and store away from heat and light.`,
+    });
+  } else {
+    insights.push({
+      severity: "danger",
+      message: `High DOS risk — ${scores.dosRisk.toFixed(0)}% linoleic/linolenic. Consider swapping in a more oxidation-stable oil (coconut, tallow, palm-free hard fats) or lowering superfat.`,
+    });
+  }
+
+  const [hMin, hMax] = QUALITY_RANGES.hardness;
+  if (inRange(scores.hardness, QUALITY_RANGES.hardness)) {
+    insights.push({
+      severity: "success",
+      message: `Good hardness (${scores.hardness.toFixed(0)}) — should unmold cleanly and hold up well in the shower.`,
+    });
+  } else if (scores.hardness < hMin) {
+    insights.push({
+      severity: "warning",
+      message: `Soft bar (${scores.hardness.toFixed(0)}). Bar may feel soft — allow extra cure and consider adding hard fats. Cure time: 6-8 weeks minimum.`,
+    });
+  } else {
+    insights.push({
+      severity: "info",
+      message: `Very hard bar (${scores.hardness.toFixed(0)}, above ${hMax}) — may turn brittle; consider a bit more liquid oil.`,
+    });
+  }
+
+  const [cMin, cMax] = QUALITY_RANGES.cleansing;
+  if (inRange(scores.cleansing, QUALITY_RANGES.cleansing)) {
+    insights.push({
+      severity: "success",
+      message: `Balanced cleansing (${scores.cleansing.toFixed(0)}) — effective without being harsh on normal skin.`,
+    });
+  } else if (scores.cleansing < cMin) {
+    insights.push({
+      severity: "info",
+      message: `Low cleansing (${scores.cleansing.toFixed(0)}) — may feel under-cleansing; consider a bit more coconut or babassu oil.`,
+    });
+  } else {
+    insights.push({
+      severity: "warning",
+      message: `High cleansing (${scores.cleansing.toFixed(0)}, above ${cMax}) — may feel stripping or drying; consider reducing lauric/myristic-heavy oils.`,
+    });
+  }
+
+  const [condMin] = QUALITY_RANGES.conditioning;
+  if (inRange(scores.conditioning, QUALITY_RANGES.conditioning)) {
+    insights.push({
+      severity: "success",
+      message: `Good conditioning (${scores.conditioning.toFixed(0)}) — skin should feel comfortable and moisturised.`,
+    });
+  } else if (scores.conditioning < condMin) {
+    insights.push({
+      severity: "warning",
+      message: `Low conditioning (${scores.conditioning.toFixed(0)}) — bar may feel drying; consider more conditioning oils (olive, sunflower, avocado).`,
+    });
+  }
+
+  if (inRange(scores.bubbly, QUALITY_RANGES.bubbly) && inRange(scores.creamy, QUALITY_RANGES.creamy)) {
+    insights.push({
+      severity: "success",
+      message: `Good lather balance (bubbly: ${scores.bubbly.toFixed(0)}, creamy: ${scores.creamy.toFixed(0)}) — rich, satisfying lather.`,
+    });
+  } else {
+    if (!inRange(scores.bubbly, QUALITY_RANGES.bubbly)) {
+      insights.push({
+        severity: "info",
+        message: `Bubbly lather (${scores.bubbly.toFixed(0)}) is outside the ideal ${QUALITY_RANGES.bubbly[0]}-${QUALITY_RANGES.bubbly[1]} range — adjust lauric/myristic/ricinoleic oils to change lather size.`,
+      });
+    }
+    if (!inRange(scores.creamy, QUALITY_RANGES.creamy)) {
+      insights.push({
+        severity: "info",
+        message: `Creamy lather (${scores.creamy.toFixed(0)}) is outside the ideal ${QUALITY_RANGES.creamy[0]}-${QUALITY_RANGES.creamy[1]} range — adjust palmitic/stearic/ricinoleic oils to change lather density.`,
+      });
+    }
+  }
+
+  return insights;
 }
 
 export interface LyeWaterResult {

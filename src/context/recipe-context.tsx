@@ -14,6 +14,7 @@ import {
   calculateQualityScores,
   calculateYield,
   getLyeConcentrationAdvisory,
+  getRecipeInsights,
   getSuperfatGuidance,
   toWeightedOils,
   toWeightedScents,
@@ -53,6 +54,7 @@ interface RecipeContextValue {
   yieldResult: ReturnType<typeof calculateYield>;
   lyeAdvisories: ReturnType<typeof getLyeConcentrationAdvisory>;
   superfatGuidance: string[];
+  recipeInsights: ReturnType<typeof getRecipeInsights>;
   scentBlendAnalysis: ReturnType<typeof analyzeScentBlend>;
   totalOilPercent: number;
   batchCosts: ReturnType<typeof calculateBatchCosts>;
@@ -210,6 +212,10 @@ export function RecipeProvider({ children }: { children: React.ReactNode }) {
     () => getSuperfatGuidance(recipe.superfatPercent, fattyAcidBlend),
     [recipe.superfatPercent, fattyAcidBlend]
   );
+  const recipeInsights = React.useMemo(
+    () => (weightedOils.length > 0 ? getRecipeInsights(qualityScores, fattyAcidBlend) : []),
+    [weightedOils.length, qualityScores, fattyAcidBlend]
+  );
   const scentBlendAnalysis = React.useMemo(
     () => analyzeScentBlend(weightedScents),
     [weightedScents]
@@ -254,6 +260,7 @@ export function RecipeProvider({ children }: { children: React.ReactNode }) {
     yieldResult,
     lyeAdvisories,
     superfatGuidance,
+    recipeInsights,
     scentBlendAnalysis,
     totalOilPercent,
     batchCosts,

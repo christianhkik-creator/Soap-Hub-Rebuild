@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { QualityScoreBar } from "@/components/quality-score-bar";
 import { FattyAcidBars } from "@/components/fatty-acid-bars";
 import { useRecipe } from "@/context/recipe-context";
-import { QUALITY_RANGES } from "@/lib/soap-math";
+import { QUALITY_AXIS_MAX, QUALITY_RANGES } from "@/lib/soap-math";
 import { SCENT_NOTE_LABELS } from "@/lib/types";
 
 export default function RecipeSummaryPage() {
@@ -119,13 +119,14 @@ export default function RecipeSummaryPage() {
         <div>
           <h2 className="mb-2 font-display text-lg font-semibold">Soap Bar Quality</h2>
           <div className="space-y-3 rounded-lg border border-border p-4">
-            <QualityScoreBar label="Hardness" value={qualityScores.hardness} range={QUALITY_RANGES.hardness} />
-            <QualityScoreBar label="Cleansing" value={qualityScores.cleansing} range={QUALITY_RANGES.cleansing} />
-            <QualityScoreBar label="Conditioning" value={qualityScores.conditioning} range={QUALITY_RANGES.conditioning} />
-            <QualityScoreBar label="Bubbly" value={qualityScores.bubbly} range={QUALITY_RANGES.bubbly} />
-            <QualityScoreBar label="Creamy" value={qualityScores.creamy} range={QUALITY_RANGES.creamy} />
-            <QualityScoreBar label="Iodine" value={qualityScores.iodine} range={QUALITY_RANGES.iodine} />
-            <QualityScoreBar label="INS" value={qualityScores.ins} range={QUALITY_RANGES.ins} />
+            <QualityScoreBar label="Hardness" value={qualityScores.hardness} range={QUALITY_RANGES.hardness} axisMax={QUALITY_AXIS_MAX.hardness} />
+            <QualityScoreBar label="Cleansing" value={qualityScores.cleansing} range={QUALITY_RANGES.cleansing} axisMax={QUALITY_AXIS_MAX.cleansing} />
+            <QualityScoreBar label="Conditioning" value={qualityScores.conditioning} range={QUALITY_RANGES.conditioning} axisMax={QUALITY_AXIS_MAX.conditioning} />
+            <QualityScoreBar label="Bubbly" value={qualityScores.bubbly} range={QUALITY_RANGES.bubbly} axisMax={QUALITY_AXIS_MAX.bubbly} />
+            <QualityScoreBar label="Creamy" value={qualityScores.creamy} range={QUALITY_RANGES.creamy} axisMax={QUALITY_AXIS_MAX.creamy} />
+            <QualityScoreBar label="DOS Risk (Linoleic)" value={qualityScores.dosRisk} range={QUALITY_RANGES.dosRisk} axisMax={QUALITY_AXIS_MAX.dosRisk} />
+            <QualityScoreBar label="Iodine" value={qualityScores.iodine} range={QUALITY_RANGES.iodine} axisMax={QUALITY_AXIS_MAX.iodine} />
+            <QualityScoreBar label="INS" value={qualityScores.ins} range={QUALITY_RANGES.ins} axisMax={QUALITY_AXIS_MAX.ins} />
           </div>
         </div>
         <div>
