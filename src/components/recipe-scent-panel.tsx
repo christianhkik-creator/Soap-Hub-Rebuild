@@ -3,6 +3,7 @@
 import { X } from "lucide-react";
 import { useState } from "react";
 
+import { AddScentDialog } from "@/components/add-scent-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -40,9 +41,12 @@ export function RecipeScentPanel({ note }: { note: ScentNote }) {
           <span className={`mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${styles.badge}`}>
             {title[0]}
           </span>
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              {title}
+          <div className="flex-1">
+            <div className="flex items-start justify-between gap-2">
+              <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                {title}
+              </div>
+              <AddScentDialog defaultNote={note} />
             </div>
             <p className="text-sm text-muted-foreground">{blurb}</p>
           </div>

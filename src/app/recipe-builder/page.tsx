@@ -13,6 +13,10 @@ import type { OilCategory } from "@/lib/types";
 
 const CATEGORIES: OilCategory[] = ["conditioning", "cleansing", "hardness", "lather-boost"];
 
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
 const INSIGHT_STYLES = {
   success: { border: "border-success/30", bg: "bg-success/10", text: "text-success", Icon: CheckCircle2 },
   info: { border: "border-border", bg: "bg-muted", text: "text-muted-foreground", Icon: Info },
@@ -76,9 +80,13 @@ export default function RecipeBuilderPage() {
             <Input
               id="total-oil-weight"
               type="number"
+              min={0}
               value={recipe.totalOilWeightGrams}
               onChange={(e) =>
-                setRecipe((r) => ({ ...r, totalOilWeightGrams: parseFloat(e.target.value) || 0 }))
+                setRecipe((r) => ({
+                  ...r,
+                  totalOilWeightGrams: Math.max(0, parseFloat(e.target.value) || 0),
+                }))
               }
             />
           </div>
@@ -87,8 +95,15 @@ export default function RecipeBuilderPage() {
             <Input
               id="superfat"
               type="number"
+              min={0}
+              max={20}
               value={recipe.superfatPercent}
-              onChange={(e) => setRecipe((r) => ({ ...r, superfatPercent: parseFloat(e.target.value) || 0 }))}
+              onChange={(e) =>
+                setRecipe((r) => ({
+                  ...r,
+                  superfatPercent: clamp(parseFloat(e.target.value) || 0, 0, 20),
+                }))
+              }
             />
             <ul className="space-y-1 pt-1 text-xs text-muted-foreground">
               {superfatGuidance.map((note, i) => (
@@ -101,9 +116,14 @@ export default function RecipeBuilderPage() {
             <Input
               id="lye-concentration"
               type="number"
+              min={15}
+              max={50}
               value={recipe.lyeConcentrationPercent}
               onChange={(e) =>
-                setRecipe((r) => ({ ...r, lyeConcentrationPercent: parseFloat(e.target.value) || 0 }))
+                setRecipe((r) => ({
+                  ...r,
+                  lyeConcentrationPercent: clamp(parseFloat(e.target.value) || 0, 15, 50),
+                }))
               }
             />
             {lyeAdvisories.length > 0 && (

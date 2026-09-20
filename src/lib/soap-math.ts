@@ -374,15 +374,19 @@ export function getLyeConcentrationAdvisory({
 }): LyeAdvisory[] {
   const advisories: LyeAdvisory[] = [];
 
-  const castorPercent = oils
-    .filter((o) => o.oil.id === "castor-oil")
-    .reduce((s, o) => s + o.percent, 0);
-  if (castorPercent > 10) {
+  // Keyed off ricinoleic content directly (not a specific oil id like
+  // "castor-oil") so any high-ricinoleic oil — including a custom one —
+  // triggers this, not just the seed castor oil entry.
+  const ricinoleicPercent = oils.reduce(
+    (s, o) => s + ((o.oil.fattyAcids.ricinoleic ?? 0) * o.percent) / 100,
+    0
+  );
+  if (ricinoleicPercent > 8) {
     advisories.push({
       level: "caution",
-      message: `Castor oil is ${castorPercent.toFixed(
-        0
-      )}% of this recipe (above the typical 5-10% range). High ricinoleic content can thicken batter fast — consider a lower lye concentration (more water) to slow trace.`,
+      message: `This blend's ricinoleic content is ${ricinoleicPercent.toFixed(
+        1
+      )}% (equivalent to more than ~10% castor oil). High ricinoleic content can thicken batter fast — consider a lower lye concentration (more water) to slow trace.`,
     });
   }
 

@@ -9,6 +9,13 @@ import { useRecipe } from "@/context/recipe-context";
 import { QUALITY_AXIS_MAX, QUALITY_RANGES } from "@/lib/soap-math";
 import { SCENT_NOTE_LABELS } from "@/lib/types";
 
+const INSIGHT_DOT: Record<string, string> = {
+  success: "bg-success",
+  info: "bg-muted-foreground",
+  warning: "bg-warning",
+  danger: "bg-destructive",
+};
+
 export default function RecipeSummaryPage() {
   const {
     recipe,
@@ -20,6 +27,7 @@ export default function RecipeSummaryPage() {
     yieldResult,
     scentBlendAnalysis,
     batchCosts,
+    recipeInsights,
   } = useRecipe();
 
   const oilRows = recipe.oils
@@ -136,6 +144,20 @@ export default function RecipeSummaryPage() {
           </div>
         </div>
       </section>
+
+      {recipeInsights.length > 0 && (
+        <section>
+          <h2 className="mb-2 font-display text-lg font-semibold">Insights</h2>
+          <ul className="space-y-1.5 rounded-lg border border-border p-4 text-sm">
+            {recipeInsights.map((insight, i) => (
+              <li key={i} className="flex gap-2">
+                <span className={`mt-1.5 size-1.5 shrink-0 rounded-full ${INSIGHT_DOT[insight.severity]}`} />
+                <span>{insight.message}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {scentRows.length > 0 && (
         <section>
