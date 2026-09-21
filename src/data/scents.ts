@@ -238,6 +238,61 @@ export const SCENTS: Scent[] = [
       },
     ],
   },
+  {
+    id: "lemongrass-eo",
+    name: "Lemongrass EO",
+    botanicalName: "Cymbopogon citratus (West Indian) or C. flexuosus (East Indian) — verify which; flexuosus runs higher citral",
+    note: "top",
+    molecularWeight: 152.2,
+    dominantClass: "aldehyde",
+    majorConstituents:
+      "Citral (neral + geranial isomers, ~60-85% combined, higher in C. flexuosus/East Indian oil), myrcene (~8-20%, highly variable by origin), geraniol (~2-7%, highly variable), limonene (~1-8%). Citronellal is NOT a major constituent here — that's a Citronella (C. nardus/winterianus) or lemon eucalyptus trait, a different oil despite the similar name/scent.",
+    usageRateMin: 3,
+    usageRateMax: 6,
+    longevityMonths: [0.5, 2],
+    priceTier: 1,
+    description:
+      "Same citral chemistry and top-note behavior as Litsea Cubeba (already in this library), but treat trace-acceleration folklore separately: unlike Litsea, real practitioner reports for lemongrass are genuinely split — some report it traces almost instantly, others report no issue after years of use — so no accelerant claim is asserted either way here. Because citral is a recognized skin sensitizer with its own IFRA usage cap (see warning below), a higher-citral East Indian (C. flexuosus) bottle used at the top of the usage range is the scenario most worth double-checking.",
+    warnings: [
+      {
+        type: "discoloration",
+        severity: "info",
+        label: "Discoloration",
+        message:
+          "Practitioner reports disagree — some describe cured bars turning bright orange with no colorant added, others report no discoloration at all. Likely supplier/usage-rate dependent rather than a settled effect.",
+        evidence: "practitioner-reported",
+      },
+      {
+        type: "ifra-caution",
+        severity: "warning",
+        label: "Citral sensitizer cap (IFRA Category 9)",
+        message:
+          "Citral is a documented skin sensitizer with an IFRA Category 9 (rinse-off, includes bar soap) limit commonly cited at 5% of the finished product. At 3-6% EO usage and ~60-85% citral content, citral load in the bar works out to roughly 2-5% — comfortably under the cap at typical usage, but a high-citral East Indian oil used at the top of the range can reach or exceed it. Worth doing the math for your specific bottle rather than assuming the general 3-6% EO guidance is automatically safe here.",
+        evidence: "documented",
+      },
+    ],
+    sources: [
+      {
+        claim: "Citral-dominant monoterpene aldehyde, MW ~152.2 — same identity and top-note classification as Litsea Cubeba",
+        confidence: "cross-referenced",
+      },
+      {
+        claim: "Trace acceleration evidence is genuinely split among practitioners, not a clean folklore-vs-refuted case like Litsea Cubeba",
+        confidence: "cross-referenced",
+        note: "Multiple independent first-hand reports go both ways ('traces almost instantly' vs. 'no issue after years of use'). Left unflagged as neither a confirmed accelerant nor a confirmed non-accelerant, rather than asserting either direction without a real consensus.",
+      },
+      {
+        claim: "Citral IFRA Category 9 limit commonly cited at 5% of finished product",
+        confidence: "cross-referenced",
+        note: "Confirmed via multiple independent secondary industry sources citing the current IFRA Amendment text; the primary IFRA Standards PDF itself was not directly accessible this research session — worth an independent check against the current amendment if this number needs to be authoritative rather than well-corroborated.",
+      },
+      {
+        claim: "C. citratus vs. C. flexuosus differ meaningfully in citral concentration (flexuosus runs consistently higher, ~85-90%)",
+        confidence: "cross-referenced",
+        note: "A real species/sourcing difference, same pattern as the Sandalwood and Eucalyptus entries — affects how close a given usage rate sits to the IFRA cap above.",
+      },
+    ],
+  },
 ];
 
 export const SCENTS_BY_ID = new Map(SCENTS.map((s) => [s.id, s]));
