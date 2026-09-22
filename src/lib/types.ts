@@ -69,7 +69,7 @@ export interface Oil {
   category: OilCategory;
   /** grams of NaOH required per gram of this oil at 0% superfat */
   sapNaOH: number;
-  /** g/mL in its measured (liquid/melted) state — used for the cost-per-fl-oz estimate. Falls back to a generic oil-density approximation when unset. */
+  /** g/mL in its measured (liquid/melted) state — used to convert a fl-oz purchase into grams. Falls back to a generic oil-density approximation when unset. */
   densityGPerMl?: number;
   fattyAcids: FattyAcidProfile;
   usageRateMin: number;
@@ -134,6 +134,8 @@ export interface Scent {
   molecularWeight: number;
   dominantClass: ChemicalClass;
   majorConstituents: string;
+  /** g/mL — used to convert a fl-oz purchase into grams. Falls back to a generic essential-oil-density approximation when unset. */
+  densityGPerMl?: number;
   usageRateMin: number;
   usageRateMax: number;
   /** [min, max] months the scent is expected to remain perceptible in cured soap */
@@ -168,6 +170,8 @@ export interface Additive {
   category: AdditiveCategory;
   usageRateMin: number;
   usageRateMax: number;
+  /** g/mL (bulk density) — used to convert a fl-oz purchase into grams. Falls back to a generic powder-density approximation when unset; bulk density varies a lot by how packed the powder is, so treat the fallback as rough. */
+  densityGPerMl?: number;
   usageNote?: string;
   description: string;
   effects: string;
@@ -194,6 +198,34 @@ export interface RecipeAdditiveEntry {
   percent: number;
 }
 
+/** Units a real receipt is denominated in — how much you actually paid for how much stuff. */
+export type PurchaseUnit = "flOz" | "g" | "lb";
+
+export const PURCHASE_UNIT_LABELS: Record<PurchaseUnit, string> = {
+  flOz: "fl oz",
+  g: "g",
+  lb: "lb",
+};
+
+/** "I paid $amountPaid for a container of containerAmount containerUnit." The true $/g is derived from this, not entered directly. */
+export interface PurchaseInfo {
+  amountPaid: number;
+  containerAmount: number;
+  containerUnit: PurchaseUnit;
+}
+
+export function emptyPurchase(unit: PurchaseUnit = "flOz"): PurchaseInfo {
+  return { amountPaid: 0, containerAmount: 0, containerUnit: unit };
+}
+
+/** Lye is always sold by weight (flakes/pellets/beads), never by fluid volume. */
+export type LyePurchaseUnit = "g" | "lb";
+export interface LyePurchaseInfo {
+  amountPaid: number;
+  containerAmount: number;
+  containerUnit: LyePurchaseUnit;
+}
+
 export interface Recipe {
   id?: string;
   name: string;
@@ -206,10 +238,10 @@ export interface Recipe {
   batchScentWeightGrams: number;
   barWeightGrams: number;
   cureWaterLossPercent: number;
-  oilPricesPerLb: Record<string, number>;
-  scentPricesPer100g: Record<string, number>;
-  additivePricesPerLb: Record<string, number>;
-  lyePricePerLb: number;
+  oilPurchases: Record<string, PurchaseInfo>;
+  scentPurchases: Record<string, PurchaseInfo>;
+  additivePurchases: Record<string, PurchaseInfo>;
+  lyePurchase: LyePurchaseInfo;
   additionalCosts: { label: string; amount: number }[];
   createdAt?: string;
   updatedAt?: string;

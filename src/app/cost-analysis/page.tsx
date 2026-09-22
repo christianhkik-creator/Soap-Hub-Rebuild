@@ -3,14 +3,17 @@
 import { Plus, X } from "lucide-react";
 import { useState } from "react";
 
+import { PurchasePriceInput } from "@/components/purchase-price-input";
 import { RecipeAdditivePanel } from "@/components/recipe-additive-panel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useRecipe } from "@/context/recipe-context";
-import { APPROX_OIL_DENSITY_G_PER_ML, costPerFlOzApprox, costPerGram, gramsToUnit, unitToGrams } from "@/lib/soap-math";
+import { costPerGramToFlOz, gramsToUnit, unitToGrams } from "@/lib/soap-math";
+import { emptyPurchase, type LyePurchaseUnit } from "@/lib/types";
 
 type WeightUnit = "g" | "oz" | "lb" | "kg";
 
@@ -115,41 +118,32 @@ export default function CostAnalysisPage() {
                 <TableHead>Oil</TableHead>
                 <TableHead>% in Recipe</TableHead>
                 <TableHead>Weight Used</TableHead>
-                <TableHead>Price / lb (USD)</TableHead>
+                <TableHead>What you paid</TableHead>
                 <TableHead>Derived</TableHead>
                 <TableHead className="text-right">Cost</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {oilCosts.map(({ oil, percent, weightGrams, price, cost }) => (
+              {oilCosts.map(({ oil, percent, weightGrams, densityGPerMl, costPerGram, cost }) => (
                 <TableRow key={oil.id}>
                   <TableCell className="font-medium">{oil.name}</TableCell>
                   <TableCell>{percent.toFixed(0)}%</TableCell>
                   <TableCell>{weightGrams.toFixed(0)} g</TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-1">
-                      <span className="text-muted-foreground">$</span>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        placeholder="0.00"
-                        className="w-24"
-                        value={recipe.oilPricesPerLb[oil.id] ?? ""}
-                        onChange={(e) =>
-                          setRecipe((r) => ({
-                            ...r,
-                            oilPricesPerLb: { ...r.oilPricesPerLb, [oil.id]: parseFloat(e.target.value) || 0 },
-                          }))
-                        }
-                      />
-                      <span className="text-muted-foreground">/lb</span>
-                    </div>
+                    <PurchasePriceInput
+                      value={recipe.oilPurchases[oil.id] ?? emptyPurchase()}
+                      onChange={(next) =>
+                        setRecipe((r) => ({
+                          ...r,
+                          oilPurchases: { ...r.oilPurchases, [oil.id]: next },
+                        }))
+                      }
+                    />
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
-                    {price > 0 ? (
-                      <span title={`Assumes ${(oil.densityGPerMl ?? APPROX_OIL_DENSITY_G_PER_ML).toFixed(2)} g/mL density`}>
-                        ${costPerGram(price, "lb").toFixed(4)}/g · $
-                        {costPerFlOzApprox(price, "lb", oil.densityGPerMl).toFixed(2)}/fl oz
+                    {costPerGram > 0 ? (
+                      <span title={`Assumes ${densityGPerMl.toFixed(2)} g/mL density for the fl-oz conversion`}>
+                        ${costPerGram.toFixed(4)}/g · ${costPerGramToFlOz(costPerGram, densityGPerMl).toFixed(2)}/fl oz
                       </span>
                     ) : (
                       "—"
@@ -176,19 +170,58 @@ export default function CostAnalysisPage() {
               <div className="text-sm font-medium">Lye (NaOH)</div>
               <div className="text-xs text-muted-foreground">{lyeWater.naohGrams.toFixed(0)} g needed</div>
             </div>
-            <div className="flex items-center gap-1">
-              <span className="text-muted-foreground">$</span>
-              <Input
-                type="number"
-                step="0.01"
-                placeholder="0.00"
-                className="w-24"
-                value={recipe.lyePricePerLb || ""}
-                onChange={(e) => setRecipe((r) => ({ ...r, lyePricePerLb: parseFloat(e.target.value) || 0 }))}
-              />
-              <span className="text-muted-foreground">/lb</span>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 text-sm">
+                <span className="text-muted-foreground">Paid $</span>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="0.00"
+                  className="h-8 w-20"
+                  value={recipe.lyePurchase.amountPaid || ""}
+                  onChange={(e) =>
+                    setRecipe((r) => ({
+                      ...r,
+                      lyePurchase: { ...r.lyePurchase, amountPaid: parseFloat(e.target.value) || 0 },
+                    }))
+                  }
+                />
+                <span className="text-muted-foreground">for</span>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="0"
+                  className="h-8 w-16"
+                  value={recipe.lyePurchase.containerAmount || ""}
+                  onChange={(e) =>
+                    setRecipe((r) => ({
+                      ...r,
+                      lyePurchase: { ...r.lyePurchase, containerAmount: parseFloat(e.target.value) || 0 },
+                    }))
+                  }
+                />
+                <Select
+                  value={recipe.lyePurchase.containerUnit}
+                  onValueChange={(v) =>
+                    setRecipe((r) => ({
+                      ...r,
+                      lyePurchase: { ...r.lyePurchase, containerUnit: v as LyePurchaseUnit },
+                    }))
+                  }
+                >
+                  <SelectTrigger className="h-8 w-[4.5rem]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="g">g</SelectItem>
+                    <SelectItem value="lb">lb</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="font-semibold">${lyeCost.toFixed(2)}</div>
             </div>
-            <div className="font-semibold">${lyeCost.toFixed(2)}</div>
           </div>
 
           {scentCosts.length > 0 && (
@@ -207,37 +240,36 @@ export default function CostAnalysisPage() {
                     <TableHead>Scent</TableHead>
                     <TableHead>% Blend</TableHead>
                     <TableHead>Amount</TableHead>
-                    <TableHead>Price / 100g</TableHead>
+                    <TableHead>What you paid</TableHead>
+                    <TableHead>Derived</TableHead>
                     <TableHead className="text-right">Cost</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {scentCosts.map(({ scent, percent, weightGrams, cost }) => (
+                  {scentCosts.map(({ scent, percent, weightGrams, densityGPerMl, costPerGram, cost }) => (
                     <TableRow key={scent.id}>
                       <TableCell className="font-medium">{scent.name}</TableCell>
                       <TableCell>{percent.toFixed(0)}%</TableCell>
                       <TableCell>{weightGrams.toFixed(1)} g</TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-1">
-                          <span className="text-muted-foreground">$</span>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            placeholder="0.00"
-                            className="w-24"
-                            value={recipe.scentPricesPer100g[scent.id] ?? ""}
-                            onChange={(e) =>
-                              setRecipe((r) => ({
-                                ...r,
-                                scentPricesPer100g: {
-                                  ...r.scentPricesPer100g,
-                                  [scent.id]: parseFloat(e.target.value) || 0,
-                                },
-                              }))
-                            }
-                          />
-                          <span className="text-muted-foreground">/100g</span>
-                        </div>
+                        <PurchasePriceInput
+                          value={recipe.scentPurchases[scent.id] ?? emptyPurchase()}
+                          onChange={(next) =>
+                            setRecipe((r) => ({
+                              ...r,
+                              scentPurchases: { ...r.scentPurchases, [scent.id]: next },
+                            }))
+                          }
+                        />
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {costPerGram > 0 ? (
+                          <span title={`Assumes ${densityGPerMl.toFixed(2)} g/mL density for the fl-oz conversion`}>
+                            ${costPerGram.toFixed(4)}/g · ${costPerGramToFlOz(costPerGram, densityGPerMl).toFixed(2)}/fl oz
+                          </span>
+                        ) : (
+                          "—"
+                        )}
                       </TableCell>
                       <TableCell className="text-right font-medium">${cost.toFixed(2)}</TableCell>
                     </TableRow>

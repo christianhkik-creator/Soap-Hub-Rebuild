@@ -9,10 +9,13 @@ import {
   costForWeight,
   costPerFlOzApprox,
   costPerGram,
+  costPerGramFromPurchase,
+  costPerGramToFlOz,
   getLyeConcentrationAdvisory,
   getRecipeInsights,
   GRAMS_PER_LB,
   lyeConcentrationFromRatio,
+  purchaseContainerGrams,
   QUALITY_RANGES,
   ratioFromLyeConcentration,
   type WeightedOil,
@@ -235,5 +238,40 @@ describe("cost math", () => {
 
   it("costPerGram is a pure per-unit conversion independent of quantity", () => {
     expect(costPerGram(10, "lb")).toBeCloseTo(10 / GRAMS_PER_LB, 6);
+  });
+});
+
+describe("purchase-based cost math", () => {
+  it("purchaseContainerGrams converts lb and g directly, and flOz via density", () => {
+    expect(purchaseContainerGrams(1, "lb", 0.92)).toBeCloseTo(GRAMS_PER_LB, 6);
+    expect(purchaseContainerGrams(500, "g", 0.92)).toBe(500);
+    expect(purchaseContainerGrams(1, "flOz", 1)).toBeCloseTo(29.5735, 4);
+  });
+
+  it("costPerGramFromPurchase derives the true $/g from amount paid and container size", () => {
+    // $10 for a full pound should be the same $/g as the plain price/lb helper.
+    const perLb = costPerGramFromPurchase({ amountPaid: 10, containerAmount: 1, containerUnit: "lb" }, 0.92);
+    expect(perLb).toBeCloseTo(costPerGram(10, "lb"), 6);
+
+    // $6 for a 4oz (118.3mL) bottle at EO-like density 0.9 g/mL.
+    const perBottle = costPerGramFromPurchase(
+      { amountPaid: 6, containerAmount: 4, containerUnit: "flOz" },
+      0.9
+    );
+    const expectedGrams = 4 * 29.5735 * 0.9;
+    expect(perBottle).toBeCloseTo(6 / expectedGrams, 6);
+  });
+
+  it("costPerGramFromPurchase returns 0 for an unset or zero-size purchase", () => {
+    expect(costPerGramFromPurchase(undefined, 0.9)).toBe(0);
+    expect(costPerGramFromPurchase({ amountPaid: 5, containerAmount: 0, containerUnit: "g" }, 0.9)).toBe(0);
+  });
+
+  it("costPerGramToFlOz round-trips against costPerGramFromPurchase for a flOz purchase", () => {
+    const density = 0.9;
+    const purchase = { amountPaid: 6, containerAmount: 4, containerUnit: "flOz" as const };
+    const perGram = costPerGramFromPurchase(purchase, density);
+    // 1 fl oz costs (amountPaid / containerAmount); costPerGramToFlOz should recover that.
+    expect(costPerGramToFlOz(perGram, density)).toBeCloseTo(purchase.amountPaid / purchase.containerAmount, 6);
   });
 });

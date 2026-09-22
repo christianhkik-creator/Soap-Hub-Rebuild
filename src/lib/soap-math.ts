@@ -2,7 +2,9 @@ import type {
   Additive,
   FattyAcidKey,
   FattyAcidProfile,
+  LyePurchaseInfo,
   Oil,
+  PurchaseInfo,
   Recipe,
   Scent,
   RecipeOilEntry,
@@ -474,7 +476,23 @@ export function costPerGram(price: number, unit: PriceUnit): number {
  * castor oil in particular (~0.96) is notably denser than the rest.
  */
 export const APPROX_OIL_DENSITY_G_PER_ML = 0.92;
-const ML_PER_FL_OZ = 29.5735;
+
+/**
+ * Essential oils generally fall around 0.85-0.95 g/mL; 0.90 is the fallback
+ * used when a specific scent has no `densityGPerMl` set.
+ */
+export const APPROX_EO_DENSITY_G_PER_ML = 0.9;
+
+/**
+ * Fine powders (clays, colorants, charcoal) vary widely in bulk density
+ * depending on how packed they are — this is a rough fallback, not a
+ * measured constant, used only when a specific additive has no
+ * `densityGPerMl` set. Prefer weighing in grams/lb over fl oz for powders
+ * when you can.
+ */
+export const APPROX_ADDITIVE_DENSITY_G_PER_ML = 0.6;
+
+export const ML_PER_FL_OZ = 29.5735;
 
 export function costPerFlOzApprox(
   price: number,
@@ -509,6 +527,40 @@ export function unitToGrams(value: number, unit: "g" | "oz" | "lb" | "kg"): numb
     case "kg":
       return value * GRAMS_PER_KG;
   }
+}
+
+/** How many grams are actually in "containerAmount containerUnit" of something with the given density. */
+export function purchaseContainerGrams(
+  containerAmount: number,
+  containerUnit: PurchaseInfo["containerUnit"],
+  densityGPerMl: number
+): number {
+  switch (containerUnit) {
+    case "g":
+      return containerAmount;
+    case "lb":
+      return containerAmount * GRAMS_PER_LB;
+    case "flOz":
+      return containerAmount * ML_PER_FL_OZ * densityGPerMl;
+  }
+}
+
+/**
+ * The real $/g of an ingredient, derived from what you actually paid for
+ * however much of it you bought — not a price you enter directly per unit.
+ * `densityGPerMl` only matters when the purchase was recorded in fl oz.
+ */
+export function costPerGramFromPurchase(
+  purchase: PurchaseInfo | LyePurchaseInfo | undefined,
+  densityGPerMl: number
+): number {
+  if (!purchase || purchase.containerAmount <= 0) return 0;
+  const grams = purchaseContainerGrams(purchase.containerAmount, purchase.containerUnit, densityGPerMl);
+  return grams > 0 ? purchase.amountPaid / grams : 0;
+}
+
+export function costPerGramToFlOz(costPerGramValue: number, densityGPerMl: number): number {
+  return costPerGramValue * ML_PER_FL_OZ * densityGPerMl;
 }
 
 // ---------------------------------------------------------------------------
@@ -563,12 +615,34 @@ export function analyzeScentBlend(entries: WeightedScent[]): ScentBlendAnalysis 
 }
 
 export interface BatchCosts {
-  oilCosts: { oil: Oil; percent: number; weightGrams: number; price: number; cost: number }[];
+  oilCosts: {
+    oil: Oil;
+    percent: number;
+    weightGrams: number;
+    densityGPerMl: number;
+    costPerGram: number;
+    cost: number;
+  }[];
   totalOilCost: number;
+  lyeCostPerGram: number;
   lyeCost: number;
-  scentCosts: { scent: Scent; percent: number; weightGrams: number; price: number; cost: number }[];
+  scentCosts: {
+    scent: Scent;
+    percent: number;
+    weightGrams: number;
+    densityGPerMl: number;
+    costPerGram: number;
+    cost: number;
+  }[];
   totalScentCost: number;
-  additiveCosts: { additive: Additive; percent: number; weightGrams: number; price: number; cost: number }[];
+  additiveCosts: {
+    additive: Additive;
+    percent: number;
+    weightGrams: number;
+    densityGPerMl: number;
+    costPerGram: number;
+    cost: number;
+  }[];
   totalAdditiveCost: number;
   additionalTotal: number;
   totalBatchCost: number;
@@ -595,27 +669,24 @@ export function calculateBatchCosts({
       const oil = oilsById.get(entry.oilId);
       if (!oil) return null;
       const weightGrams = (recipe.totalOilWeightGrams * entry.percent) / 100;
-      const price = recipe.oilPricesPerLb[oil.id] ?? 0;
-      return { oil, percent: entry.percent, weightGrams, price, cost: costForWeight(weightGrams, price, "lb") };
+      const densityGPerMl = oil.densityGPerMl ?? APPROX_OIL_DENSITY_G_PER_ML;
+      const costPerGram = costPerGramFromPurchase(recipe.oilPurchases[oil.id], densityGPerMl);
+      return { oil, percent: entry.percent, weightGrams, densityGPerMl, costPerGram, cost: weightGrams * costPerGram };
     })
     .filter((x): x is NonNullable<typeof x> => x !== null);
   const totalOilCost = oilCosts.reduce((s, o) => s + o.cost, 0);
 
-  const lyeCost = costForWeight(naohGrams, recipe.lyePricePerLb, "lb");
+  const lyeCostPerGram = costPerGramFromPurchase(recipe.lyePurchase, 1);
+  const lyeCost = naohGrams * lyeCostPerGram;
 
   const scentCosts = recipe.scents
     .map((entry) => {
       const scent = scentsById.get(entry.scentId);
       if (!scent) return null;
       const weightGrams = (recipe.batchScentWeightGrams * entry.percent) / 100;
-      const price = recipe.scentPricesPer100g[scent.id] ?? 0;
-      return {
-        scent,
-        percent: entry.percent,
-        weightGrams,
-        price,
-        cost: costForWeight(weightGrams, price, "100g"),
-      };
+      const densityGPerMl = scent.densityGPerMl ?? APPROX_EO_DENSITY_G_PER_ML;
+      const costPerGram = costPerGramFromPurchase(recipe.scentPurchases[scent.id], densityGPerMl);
+      return { scent, percent: entry.percent, weightGrams, densityGPerMl, costPerGram, cost: weightGrams * costPerGram };
     })
     .filter((x): x is NonNullable<typeof x> => x !== null);
   const totalScentCost = scentCosts.reduce((s, o) => s + o.cost, 0);
@@ -625,13 +696,15 @@ export function calculateBatchCosts({
       const additive = additivesById.get(entry.additiveId);
       if (!additive) return null;
       const weightGrams = (recipe.totalOilWeightGrams * entry.percent) / 100;
-      const price = recipe.additivePricesPerLb[additive.id] ?? 0;
+      const densityGPerMl = additive.densityGPerMl ?? APPROX_ADDITIVE_DENSITY_G_PER_ML;
+      const costPerGram = costPerGramFromPurchase(recipe.additivePurchases[additive.id], densityGPerMl);
       return {
         additive,
         percent: entry.percent,
         weightGrams,
-        price,
-        cost: costForWeight(weightGrams, price, "lb"),
+        densityGPerMl,
+        costPerGram,
+        cost: weightGrams * costPerGram,
       };
     })
     .filter((x): x is NonNullable<typeof x> => x !== null);
@@ -644,6 +717,7 @@ export function calculateBatchCosts({
   return {
     oilCosts,
     totalOilCost,
+    lyeCostPerGram,
     lyeCost,
     scentCosts,
     totalScentCost,

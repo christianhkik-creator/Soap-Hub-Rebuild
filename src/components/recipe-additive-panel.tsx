@@ -4,13 +4,13 @@ import { AlertTriangle, ChevronDown, X } from "lucide-react";
 import { useState } from "react";
 
 import { AddAdditiveDialog } from "@/components/add-additive-dialog";
+import { PurchasePriceInput } from "@/components/purchase-price-input";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { useRecipe } from "@/context/recipe-context";
-import { costForWeight } from "@/lib/soap-math";
-import { ADDITIVE_CATEGORY_LABELS } from "@/lib/types";
+import { costPerGramToFlOz } from "@/lib/soap-math";
+import { ADDITIVE_CATEGORY_LABELS, emptyPurchase } from "@/lib/types";
 
 export function RecipeAdditivePanel() {
   const { recipe, setRecipe, allAdditives, batchCosts } = useRecipe();
@@ -68,7 +68,7 @@ export function RecipeAdditivePanel() {
         <p className="text-sm italic text-muted-foreground">No additives added yet.</p>
       ) : (
         <div className="space-y-3">
-          {batchCosts.additiveCosts.map(({ additive, percent, weightGrams, price, cost }) => {
+          {batchCosts.additiveCosts.map(({ additive, percent, weightGrams, densityGPerMl, costPerGram, cost }) => {
             const expanded = expandedId === additive.id;
             return (
               <div key={additive.id} className="rounded-md border border-border p-3">
@@ -122,29 +122,21 @@ export function RecipeAdditivePanel() {
 
                 <div className="mt-2 flex flex-wrap items-center gap-3 text-xs">
                   <span className="text-muted-foreground">{weightGrams.toFixed(1)} g</span>
-                  <div className="flex items-center gap-1">
-                    <span className="text-muted-foreground">$</span>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      placeholder="0.00"
-                      className="h-7 w-20"
-                      value={price || ""}
-                      onChange={(e) =>
-                        setRecipe((r) => ({
-                          ...r,
-                          additivePricesPerLb: {
-                            ...r.additivePricesPerLb,
-                            [additive.id]: parseFloat(e.target.value) || 0,
-                          },
-                        }))
-                      }
-                    />
-                    <span className="text-muted-foreground">/lb</span>
-                  </div>
-                  {price > 0 && (
-                    <span className="text-muted-foreground">
-                      ${costForWeight(1, price, "lb").toFixed(4)}/g
+                  <PurchasePriceInput
+                    value={recipe.additivePurchases[additive.id] ?? emptyPurchase("g")}
+                    onChange={(next) =>
+                      setRecipe((r) => ({
+                        ...r,
+                        additivePurchases: { ...r.additivePurchases, [additive.id]: next },
+                      }))
+                    }
+                  />
+                  {costPerGram > 0 && (
+                    <span
+                      className="text-muted-foreground"
+                      title={`Assumes ${densityGPerMl.toFixed(2)} g/mL bulk density for the fl-oz conversion`}
+                    >
+                      ${costPerGram.toFixed(4)}/g · ${costPerGramToFlOz(costPerGram, densityGPerMl).toFixed(2)}/fl oz
                     </span>
                   )}
                   <span className="ml-auto font-medium">${cost.toFixed(2)}</span>
