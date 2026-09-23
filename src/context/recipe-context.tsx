@@ -6,6 +6,7 @@ import { ADDITIVES, ADDITIVES_BY_ID } from "@/data/additives";
 import { OILS, OILS_BY_ID } from "@/data/oils";
 import { SCENTS, SCENTS_BY_ID } from "@/data/scents";
 import { createDefaultRecipe, normalizeRecipe } from "@/lib/default-recipe";
+import { customAdditiveStore, customOilStore, customScentStore } from "@/lib/custom-ingredient-storage";
 import {
   analyzeScentBlend,
   blendFattyAcids,
@@ -20,6 +21,7 @@ import {
   toWeightedOils,
   toWeightedScents,
 } from "@/lib/soap-math";
+import { isSupabaseConfigured } from "@/lib/supabase";
 import type {
   Additive,
   Oil,
@@ -103,14 +105,30 @@ export function RecipeProvider({ children }: { children: React.ReactNode }) {
   const [hydrated, setHydrated] = React.useState(false);
 
   React.useEffect(() => {
-    // One-time hydration from localStorage after mount (SSR has no
-    // localStorage, so this can't run in the initializer without causing a
-    // hydration mismatch — see the comment above).
+    // One-time hydration after mount (SSR has no localStorage/network
+    // client, so this can't run in the initializer without causing a
+    // hydration mismatch — see the comment above). The working draft recipe
+    // is always local-only scratch space (see custom-ingredient-storage.ts
+    // doc comment); custom ingredients come from Supabase when configured,
+    // so they sync across devices, and from localStorage otherwise.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setRecipe(normalizeRecipe(loadJson(DRAFT_KEY, createDefaultRecipe())));
-    setCustomOils(loadJson(CUSTOM_OILS_KEY, []));
-    setCustomScents(loadJson(CUSTOM_SCENTS_KEY, []));
-    setCustomAdditives(loadJson(CUSTOM_ADDITIVES_KEY, []));
+
+    if (isSupabaseConfigured) {
+      customOilStore.list().then(setCustomOils).catch(() => setCustomOils(loadJson(CUSTOM_OILS_KEY, [])));
+      customScentStore
+        .list()
+        .then(setCustomScents)
+        .catch(() => setCustomScents(loadJson(CUSTOM_SCENTS_KEY, [])));
+      customAdditiveStore
+        .list()
+        .then(setCustomAdditives)
+        .catch(() => setCustomAdditives(loadJson(CUSTOM_ADDITIVES_KEY, [])));
+    } else {
+      setCustomOils(loadJson(CUSTOM_OILS_KEY, []));
+      setCustomScents(loadJson(CUSTOM_SCENTS_KEY, []));
+      setCustomAdditives(loadJson(CUSTOM_ADDITIVES_KEY, []));
+    }
     setHydrated(true);
   }, []);
 
@@ -118,6 +136,10 @@ export function RecipeProvider({ children }: { children: React.ReactNode }) {
     if (!hydrated) return;
     window.localStorage.setItem(DRAFT_KEY, JSON.stringify(recipe));
   }, [recipe, hydrated]);
+  // Custom ingredients are also cached to localStorage even when Supabase is
+  // configured, so the app still works offline / before the network fetch
+  // above resolves — but when Supabase is configured, add/delete write
+  // straight to Supabase (see below) rather than relying on this effect.
   React.useEffect(() => {
     if (!hydrated) return;
     window.localStorage.setItem(CUSTOM_OILS_KEY, JSON.stringify(customOils));
@@ -150,27 +172,46 @@ export function RecipeProvider({ children }: { children: React.ReactNode }) {
     return map;
   }, [customAdditives]);
 
+  // Each add/delete updates local state immediately (so the UI never waits
+  // on a network round-trip), then — when Supabase is configured — writes
+  // through so the change actually syncs to other devices. A failed sync
+  // write is logged rather than rolled back: the item still saved to this
+  // device's localStorage cache, and the next successful list() will
+  // reconcile once connectivity is back.
   const addCustomOil = React.useCallback((oil: Oil) => {
     setCustomOils((prev) => [...prev.filter((o) => o.id !== oil.id), oil]);
+    if (isSupabaseConfigured) customOilStore.save(oil).catch((e) => console.error("Failed to sync custom oil:", e));
   }, []);
   const addCustomScent = React.useCallback((scent: Scent) => {
     setCustomScents((prev) => [...prev.filter((s) => s.id !== scent.id), scent]);
+    if (isSupabaseConfigured)
+      customScentStore.save(scent).catch((e) => console.error("Failed to sync custom scent:", e));
   }, []);
   const addCustomAdditive = React.useCallback((additive: Additive) => {
     setCustomAdditives((prev) => [...prev.filter((a) => a.id !== additive.id), additive]);
+    if (isSupabaseConfigured)
+      customAdditiveStore.save(additive).catch((e) => console.error("Failed to sync custom additive:", e));
   }, []);
   // Also drops the oil/scent/additive from the active recipe, if it's currently in use.
   const deleteCustomOil = React.useCallback((oilId: string) => {
     setCustomOils((prev) => prev.filter((o) => o.id !== oilId));
     setRecipe((prev) => ({ ...prev, oils: prev.oils.filter((o) => o.oilId !== oilId) }));
+    if (isSupabaseConfigured)
+      customOilStore.remove(oilId).catch((e) => console.error("Failed to sync custom oil deletion:", e));
   }, []);
   const deleteCustomScent = React.useCallback((scentId: string) => {
     setCustomScents((prev) => prev.filter((s) => s.id !== scentId));
     setRecipe((prev) => ({ ...prev, scents: prev.scents.filter((s) => s.scentId !== scentId) }));
+    if (isSupabaseConfigured)
+      customScentStore.remove(scentId).catch((e) => console.error("Failed to sync custom scent deletion:", e));
   }, []);
   const deleteCustomAdditive = React.useCallback((additiveId: string) => {
     setCustomAdditives((prev) => prev.filter((a) => a.id !== additiveId));
     setRecipe((prev) => ({ ...prev, additives: prev.additives.filter((a) => a.additiveId !== additiveId) }));
+    if (isSupabaseConfigured)
+      customAdditiveStore
+        .remove(additiveId)
+        .catch((e) => console.error("Failed to sync custom additive deletion:", e));
   }, []);
 
   const loadRecipe = React.useCallback((next: Recipe) => setRecipe(normalizeRecipe(next)), []);

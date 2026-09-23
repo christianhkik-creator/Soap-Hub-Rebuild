@@ -29,15 +29,29 @@ against a real SoapCalc recipe export (see `src/lib/soap-math.test.ts`),
 so a future change that breaks the math fails a test instead of silently
 shipping a wrong lye weight.
 
-## Wiring up Supabase (optional, for cross-device saved recipes)
+## Wiring up Supabase (optional, for syncing recipes to your phone)
+
+Without this, saved recipes and any custom oils/scents/additives you add
+live only in the browser you made them in (localStorage) — they won't
+appear on another device. Wiring up Supabase makes both sync everywhere the
+site is loaded.
 
 1. Create a free project at [supabase.com](https://supabase.com).
-2. Run `supabase/schema.sql` in that project's SQL editor.
-3. Copy `.env.local.example` to `.env.local` and fill in the URL/anon key
-   from Project Settings → API.
-4. Since there's no login, treat the deployed URL itself as the access
+2. Run `supabase/schema.sql` in that project's SQL editor (Supabase
+   dashboard → SQL Editor → paste the file → Run). It's safe to re-run.
+3. Grab the URL and anon key from Project Settings → API.
+4. **Locally:** copy `.env.local.example` to `.env.local` and fill those in.
+   **On Vercel:** Project Settings → Environment Variables → add
+   `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` for the
+   Production environment, then redeploy (env var changes don't apply to
+   already-built deployments).
+5. Since there's no login, treat the deployed URL itself as the access
    control (e.g. Vercel deployment protection) — anyone with the anon key
    and URL can read/write your recipes.
+
+The working recipe you're actively editing (before you hit Save) stays
+local to that device on purpose — only what's in the "My Recipes" list and
+your custom ingredient library sync.
 
 ## What's in here
 

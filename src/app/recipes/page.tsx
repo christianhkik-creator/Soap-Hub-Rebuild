@@ -80,8 +80,9 @@ export default function RecipesPage() {
         </p>
         {!isSupabaseConfigured && (
           <p className="mt-2 max-w-2xl text-xs text-warning">
-            No Supabase project connected yet — recipes are saved to this browser only (see
-            .env.local.example). They won&apos;t sync to your phone until Supabase is configured.
+            No Supabase project connected yet — recipes and any custom oils/scents/additives you add
+            are saved to this browser only (see .env.local.example). None of it will sync to your
+            phone until Supabase is configured — see the README.
           </p>
         )}
       </div>
