@@ -131,6 +131,42 @@ export const ADDITIVES: Additive[] = [
       },
     ],
   },
+  {
+    id: "natural-loofah",
+    name: "Natural Loofah",
+    category: "exfoliant",
+    usageRateMin: 0,
+    usageRateMax: 20,
+    usageNote:
+      "Not blended in like a powder — loofah is used as whole/cut pieces or slices embedded in the mold, not measured as a formulation percentage. The % here just controls the weight/cost shown; set it (or edit the resulting gram figure directly) to match the actual dried loofah weight you're using in this batch.",
+    description:
+      "The dried, fibrous inner skeleton of the loofah gourd (Luffa aegyptiaca / L. cylindrica), used whole, sliced, or chopped for mechanical exfoliation. It's a plant fiber, not a chemical additive — it doesn't take part in the lye/oil saponification chemistry at all.",
+    effects:
+      "Purely physical: doesn't accelerate trace, discolor the batter, or change lather chemistry. If embedding a solid slice, the batter needs to fully saturate and surround it as you pour — an unsaturated air pocket is the main practical failure mode (see disclaimers), not a chemistry issue.",
+    benefits:
+      "Genuine, noticeably more vigorous mechanical exfoliation than a clay or ground botanical — a built-in scrubber bar rather than just a soap.",
+    disclaimers: [
+      "More abrasive than clay-based exfoliants — not recommended for sensitive, broken, or irritated skin, or for facial use.",
+      "If embedding a solid loofah piece: fully submerge it and work out air bubbles as you pour. A trapped, unsaturated air pocket inside the bar is a well-documented practical cause of mold/mildew forming inside an otherwise-fine bar — the standard fix is full saturation and tamping out air, not any special preservative.",
+      "Like any natural bath sponge, a wet loofah left without drying between uses can grow bacteria or mildew — let the finished bar fully air-dry between washes, same as you would a standalone loofah.",
+    ],
+    priceTier: 1,
+    sources: [
+      {
+        claim: "Purely mechanical exfoliant with no fatty-acid/lye chemistry — doesn't affect trace, cure, or the standard quality metrics",
+        confidence: "cross-referenced",
+      },
+      {
+        claim: "Trapped, unsaturated air pockets inside an embedded loofah slice are a widely-reported cause of internal mold/mildew in cured bars",
+        confidence: "cross-referenced",
+        note: "Practitioner-documented failure mode rather than a lab study — the fix (full saturation, tamping out air when pouring) is standard soap-making practice, not a special product needed.",
+      },
+      {
+        claim: "General bacterial/mildew hygiene caution for a wet, undried loofah applies the same way to a soap-embedded loofah as a standalone bath loofah",
+        confidence: "cross-referenced",
+      },
+    ],
+  },
 ];
 
 export const ADDITIVES_BY_ID = new Map(ADDITIVES.map((a) => [a.id, a]));

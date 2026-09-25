@@ -293,6 +293,163 @@ export const SCENTS: Scent[] = [
       },
     ],
   },
+  {
+    id: "peppermint-eo",
+    name: "Peppermint EO",
+    botanicalName: "Mentha × piperita",
+    note: "top",
+    molecularWeight: 156.27,
+    dominantClass: "monoterpene-alcohol",
+    majorConstituents:
+      "Menthol (30-55%, commonly cited ~44%), menthone (15-30%), 1,8-cineole (~6%), menthyl acetate (~5%), menthofuran (~10%) — percentages vary by growing conditions and drying method.",
+    usageRateMin: 1,
+    usageRateMax: 3,
+    longevityMonths: [0.5, 2],
+    priceTier: 1,
+    description:
+      "Menthol survives cold-process saponification unusually well for a monoterpene alcohol — practitioners consistently report the cooling sensation still comes through clearly in the cured bar, unlike most top notes that fade fast. That same potency is why usage rate stays low relative to other EOs.",
+    warnings: [
+      {
+        type: "ifra-caution",
+        severity: "warning",
+        label: "IFRA-restricted (exact cap unclear — check your certificate)",
+        message:
+          "Peppermint oil is IFRA-restricted (menthol/related constituents), but the specific percentage found while researching this entry was inconsistent across sources — one soap-testing source cited as low as 1.81%, others reference soapmakers using up to 5%. Rather than assert a number that might be wrong, check your supplier's current IFRA conformity certificate for the actual rinse-off-category limit.",
+        evidence: "documented",
+      },
+    ],
+    sources: [
+      {
+        claim: "Menthol 30-55% (~44% representative), menthone 15-30%, plus cineole/menthyl acetate/menthofuran",
+        confidence: "cross-referenced",
+      },
+      {
+        claim: "Menthol's cooling effect is reported to survive CP saponification and remain noticeable in the cured bar",
+        confidence: "cross-referenced",
+        note: "Practitioner-reported across multiple soap-making sources, consistent enough to include as a real effect rather than folklore.",
+      },
+      {
+        claim: "IFRA restricts peppermint oil, but the specific numeric limit cited varied between sources found (1.81% vs ~5%)",
+        confidence: "single-source",
+        note: "Genuine conflict, not resolved — the primary current IFRA Standards text wasn't directly accessible this research session. Treat the app's mention of IFRA restriction as real but check your own certificate for the number, same caveat pattern as Eucalyptus's IFRA warning.",
+      },
+    ],
+  },
+  {
+    id: "vanilla",
+    name: "Vanilla",
+    botanicalName: "Vanilla planifolia (as absolute/oleoresin — see description)",
+    note: "base",
+    molecularWeight: 152.15,
+    dominantClass: "aldehyde",
+    majorConstituents:
+      "Vanillin (4-hydroxy-3-methoxybenzaldehyde) is overwhelmingly dominant in real vanilla extract chemistry — a phenolic (aromatic) aldehyde, chemically distinct from the monoterpene aldehydes (like citral) that the rest of this library's \"aldehyde\" entries use.",
+    usageRateMin: 1,
+    usageRateMax: 3,
+    longevityMonths: [6, 12],
+    priceTier: 3,
+    description:
+      "True steam-distilled \"Vanilla essential oil\" essentially doesn't exist commercially — the yield is far too low. What's sold as vanilla EO is almost always a vanilla absolute or oleoresin (solvent- or CO2-extracted), often itself pre-diluted in a carrier oil since the raw extract is extremely thick and concentrated. Check your bottle's actual extraction method.",
+    warnings: [
+      {
+        type: "discoloration",
+        severity: "warning",
+        label: "Reliable brown discoloration",
+        message:
+          "Vanillin reacts under cold-process soap's high pH and browns the bar — this is one of the most consistently documented discoloration effects in all of soap-making, not a maybe. Real vanilla absolute discolors less dramatically than synthetic vanillin-heavy fragrance oils, but still shifts toward tan/brown over cure, more so at higher usage rates. Titanium dioxide can lighten it; \"vanilla color stabilizer\" products are reported to work inconsistently in cold process specifically.",
+        evidence: "documented",
+      },
+    ],
+    sources: [
+      {
+        claim: "Genuine steam-distilled vanilla EO isn't commercially viable; commercial \"vanilla EO\" is an absolute/oleoresin",
+        confidence: "cross-referenced",
+      },
+      {
+        claim: "Vanillin causes reliable, well-documented brown discoloration in cold process soap via a pH-driven reaction",
+        confidence: "cross-referenced",
+        note: "Consistently corroborated across multiple independent soap-making sources (Bramble Berry/Soap Queen, Modern Soapmaking, Pepper Jane's, Great Cakes) — one of the best-documented discoloration effects covered in this library.",
+      },
+      {
+        claim: "Real vanilla absolute discolors less severely than vanillin-heavy synthetic fragrance oils, but still browns, especially at higher usage",
+        confidence: "cross-referenced",
+      },
+    ],
+  },
+  {
+    id: "rosemary-eo",
+    name: "Rosemary EO",
+    botanicalName: "Salvia rosmarinus (Rosmarinus officinalis) — chemotype unspecified, see description",
+    note: "heart",
+    molecularWeight: 154.25,
+    dominantClass: "blend",
+    majorConstituents:
+      "alpha-Pinene (13.5-37.7%), 1,8-cineole (16.1-29.3%), camphor (0.7-45%, wildly chemotype-dependent), verbenone (0.8-16.9%), borneol (2.1-6.9%), limonene (1.6-4.4%). No single constituent dominates consistently across chemotypes, hence \"blend\" here rather than forcing one class.",
+    usageRateMin: 2,
+    usageRateMax: 4,
+    longevityMonths: [2, 5],
+    priceTier: 1,
+    description:
+      "Rosemary EO is sold under (at least) three distinct chemotypes — cineole, camphor, and verbenone — with genuinely large chemical differences between them; camphor alone ranges from under 1% to 45% of the oil depending on which one you have. This entry assumes an unspecified/generic commercial oil (the most common way it's sold without a chemotype label) and the warning below is written with the camphor-chemotype case in mind, since that's the more common commodity type and the one carrying the real safety consideration. Check your bottle for a chemotype (\"ct.\") designation if it has one.",
+    warnings: [
+      {
+        type: "toxicity",
+        severity: "danger",
+        label: "Camphor content — pregnancy, epilepsy, young children",
+        message:
+          "Camphor crosses the blood-brain barrier and is a documented convulsant; a systematic review of essential oils and seizure case reports specifically identifies camphor-containing oils (rosemary among them) as proconvulsant. This is about more than just concentrated-bottle ingestion — aromatherapy safety literature consistently contraindicates rosemary EO during pregnancy, for people with epilepsy, and for children under 6, even at ordinary topical/inhalation use, not only accidental ingestion. The camphor-chemotype oil carries the highest risk; cineole- or verbenone-chemotype oils are somewhat gentler but not risk-free.",
+        evidence: "documented",
+      },
+    ],
+    sources: [
+      {
+        claim: "Three main commercial chemotypes (cineole/camphor/verbenone) with camphor content ranging ~0.7-45% depending on chemotype",
+        confidence: "cross-referenced",
+      },
+      {
+        claim: "Camphor is a documented convulsant that crosses the blood-brain barrier; camphor-rich oils are identified as proconvulsant in a systematic review of essential oils and seizures",
+        confidence: "cross-referenced",
+      },
+      {
+        claim: "Rosemary EO is broadly contraindicated in pregnancy, epilepsy, and for children under 6 in aromatherapy safety guidance",
+        confidence: "cross-referenced",
+        note: "This is aromatherapy-safety-literature consensus guidance rather than a controlled clinical trial, but consistently repeated across independent sources — treated at the same evidentiary tier as this library's other population-level safety cautions.",
+      },
+      {
+        claim: "No accelerant or discoloration behavior in cold-process soap confidently found",
+        confidence: "single-source",
+        note: "Left unflagged rather than asserting an unconfirmed claim, consistent with this library's Litsea Cubeba/Sandalwood precedent.",
+      },
+    ],
+  },
+  {
+    id: "sandalwood-in-jojoba",
+    name: "Sandalwood EO in Jojoba Oil (Pre-Diluted)",
+    botanicalName: "Santalum album/spicatum (diluted) in Simmondsia chinensis (jojoba)",
+    note: "base",
+    molecularWeight: 220.35,
+    dominantClass: "sesquiterpene-alcohol",
+    majorConstituents:
+      "Same alpha-/beta-santalol chemistry as pure Sandalwood EO (already in this library), just carried in jojoba oil at some dilution rather than sold neat.",
+    usageRateMin: 8,
+    usageRateMax: 20,
+    longevityMonths: [6, 12],
+    priceTier: 2,
+    description:
+      "This bottle is labeled only \"pre-diluted, topical safe\" with no printed percentage — a common way \"ready to apply\" sandalwood products are sold, typically somewhere in a 3-10% oil-in-jojoba range for direct skin use. This entry assumes 10% as a round placeholder; the usage range above is scaled up from pure Sandalwood EO's 1-3% accordingly (roughly 10x, to land on the same effective santalol dose) and should be adjusted once you confirm the real percentage, if your supplier lists it online. Worth knowing: at that scale, hitting a normal fragrance dose means 8-20% of your total oil weight is really jojoba oil with a trace of sandalwood — you may get better value treating this as a partial jojoba substitution in your oil blend (jojoba is a fine soaping oil on its own) rather than purely as a scent additive.",
+    warnings: [],
+    sources: [
+      {
+        claim: "Chemistry is identical to pure Sandalwood EO, just diluted in jojoba oil carrier",
+        confidence: "cross-referenced",
+      },
+      {
+        claim: "\"Pre-diluted, topical safe\" sandalwood-in-jojoba products commonly fall in a 3-10% oil-in-carrier range",
+        confidence: "single-source",
+        note: "General aromatherapy topical-dilution convention, not this specific product's confirmed percentage — the bottle doesn't print one. Treat the 10% assumption and the usage range derived from it as a placeholder to correct once you know the real number.",
+      },
+    ],
+  },
 ];
 
 export const SCENTS_BY_ID = new Map(SCENTS.map((s) => [s.id, s]));
