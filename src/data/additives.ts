@@ -16,6 +16,41 @@ import type { Additive } from "@/lib/types";
  */
 export const ADDITIVES: Additive[] = [
   {
+    id: "turmeric",
+    name: "Turmeric",
+    category: "colorant",
+    usageRateMin: 0.5,
+    usageRateMax: 2,
+    usageNote:
+      "~1-2 tsp per lb of oils. Infusing the powder into a little of your oil first (and straining) gives a smoother color than adding it dry, which can leave visible flecks/speckling.",
+    description:
+      "Ground Curcuma longa rhizome. Its color comes from curcumin, a natural polyphenol — a real, well-studied compound, but see the color and benefit notes below before expecting a bright, stable yellow bar.",
+    effects:
+      "Curcumin acts as a pH indicator: yellow in acid, shifting toward red/brown in base. Cold-process soap's batter is highly alkaline, so turmeric reliably shifts toward red, burnt-orange, or brown rather than staying the bright yellow of the raw powder — the exact shade is hard to predict and varies by amount used and cure conditions. Curcumin is also chemically unstable under light, heat, and oxygen, so the color commonly keeps shifting or fading over cure rather than settling into something stable.",
+    benefits:
+      "A genuine, inexpensive natural colorant, if you're prepared for an unpredictable orange/brown/red result rather than a controlled yellow. Curcumin does have real, clinically studied anti-inflammatory, antioxidant, and antimicrobial activity for skin — see the disclaimer below on why a soap bar is unlikely to actually deliver it.",
+    disclaimers: [
+      "\"Brightening\" or anti-inflammatory marketing claims for turmeric soap point to genuine research on curcumin, but that research almost entirely relies on specialized delivery systems (nanoemulsions, liposomes, piperine-enhanced formulations) built specifically to work around curcumin's notoriously poor water solubility and skin penetration. Plain turmeric powder in a bar of soap — further degraded by the soap's high pH, and rinsed off within seconds — is a very different, much lower-bioavailability delivery route than what those studies used.",
+      "Can temporarily stain skin, nails, and light-colored washcloths/towels a yellow-orange tint, the same way cooking with turmeric does. Usually rinses out of fabric with a wash or two, not permanent.",
+    ],
+    priceTier: 1,
+    sources: [
+      {
+        claim: "Curcumin functions as a pH indicator (yellow in acid, red/brown in base), which is why cold-process soap's alkalinity shifts turmeric's color toward red/burnt-orange/brown",
+        confidence: "cross-referenced",
+      },
+      {
+        claim: "Curcumin is unstable under light, heat, oxygen, and high pH, so turmeric-colored soap commonly fades or keeps shifting shade over cure",
+        confidence: "cross-referenced",
+      },
+      {
+        claim: "Curcumin has real documented anti-inflammatory, antioxidant, and antimicrobial activity studied for skin conditions (psoriasis, acne, photoaging)",
+        confidence: "cross-referenced",
+        note: "Virtually all of this research uses specialized delivery formulations built to overcome curcumin's poor water solubility/skin permeability — not plain powder in a rinsed-off soap bar, which is why the benefit isn't asserted as something the soap itself reliably delivers.",
+      },
+    ],
+  },
+  {
     id: "activated-charcoal",
     name: "Activated Charcoal",
     category: "colorant",
