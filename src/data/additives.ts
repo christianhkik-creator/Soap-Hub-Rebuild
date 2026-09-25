@@ -92,46 +92,42 @@ export const ADDITIVES: Additive[] = [
     ],
   },
   {
+    // id kept as "white-bentonite-clay" even though the ingredient is now
+    // White Kaolin Clay — this id may already be referenced inside a saved
+    // recipe's `additives` array, and changing it would silently drop the
+    // line item from that recipe rather than update it.
     id: "white-bentonite-clay",
-    name: "White Bentonite Clay",
+    name: "White Kaolin Clay",
     category: "clay",
     usageRateMin: 0.5,
-    usageRateMax: 1.5,
+    usageRateMax: 1,
     usageNote:
-      "~1 tsp per lb of oils to start — more drying/thickening than kaolin. Disperse in water (roughly 1 tsp clay to 1 tbsp water) before adding; it's a swelling clay and prone to cracking the bar if added dry.",
+      "~1-2 tsp per lb of oils. Disperse in water (roughly 1 part clay to 3 parts water) before adding — added dry, it pulls moisture out of the batter.",
     description:
-      "A swelling (smectite) clay, stronger and more oil-absorbing than kaolin. \"White\" bentonite is usually calcium bentonite (the gentler, more common cosmetic type) rather than sodium bentonite, which swells far more — check your label if it specifies.",
+      "The same non-swelling kaolinite base as Pink Kaolin Clay (already in this library), just without the added iron-oxide/mica tint — sometimes labeled \"China clay.\" Naturally off-white to white, so it won't tint your batter, unlike the pink or colored kaolin variants.",
     effects:
-      "Accelerates trace more than kaolin and is more prone to cracking the cured bar if not pre-hydrated. Adds slip rather than lather boost; more drying overall, which is why it's popular for oily-skin facial bars. Color can come out pale greenish-grey rather than pure white depending on the specific clay's mineral content.",
+      "Clays as a group accelerate trace due to their fine particle size and water-absorbing nature; kaolin is the gentlest of them, well short of a swelling clay like bentonite. Adds a silkier, creamier lather texture and mild slip without adding its own color to the bar.",
     benefits:
-      "The strongest, best-documented oil/sebum-absorbing capacity of the common cosmetic clays, from its swelling clay structure.",
+      "Genuine mild mechanical exfoliation and real surface-level oil adsorption. Non-swelling, so it draws less moisture from skin than bentonite — reasonable for sensitive or dry skin, and a clean base if you want to add your own colorant without a clay tint underneath it.",
     disclaimers: [
-      "\"Draws out toxins\" marketing claims go beyond the evidence for a quick, rinsed-off wash. Bentonite's actual documented uses — binding ingested toxins in the gut, or blocking skin contact with an external allergen like poison ivy oil in a leave-on lotion — are different exposure scenarios than a bar of soap.",
-      "Dry bentonite commonly contains crystalline silica; repeated inhalation of the dry powder is a documented lung hazard (silicosis). Avoid generating dust clouds when measuring, and ventilate.",
+      "\"Detox\" claims are overstated for a rinsed-off soap bar, same as with other clays — the documented property is surface oil/debris adsorption, not systemic toxin removal.",
+      "Dry clay can contain trace crystalline silica; repeated inhalation of dry clay dust is a documented occupational lung hazard (silicosis). Wetted clay poses no inhalation risk — just avoid generating dust clouds when measuring the dry powder.",
     ],
     priceTier: 2,
     sources: [
+      { claim: "~1-2 tsp per lb of oils typical usage", confidence: "cross-referenced" },
       {
-        claim: "~1 tsp per lb of oils to start, more drying/trace-accelerating than kaolin",
+        claim: "Clays accelerate trace; standard practice is pre-dispersing in water, not adding dry",
         confidence: "cross-referenced",
       },
       {
-        claim: "Swelling (smectite) clay; pre-hydration in water is standard practice to avoid cracking the cured bar",
+        claim:
+          "Kaolin (white/uncolored and pink/tinted variants share the same kaolinite base) is non-swelling and the gentlest common cosmetic clay, vs. bentonite's stronger oil-absorbing/drying profile",
         confidence: "cross-referenced",
       },
       {
-        claim: "\"White bentonite\" is usually calcium bentonite (gentler) rather than sodium bentonite (much higher swelling)",
+        claim: "White/uncolored kaolin has no significant iron-oxide content, unlike pink kaolin",
         confidence: "cross-referenced",
-        note: "If your product specifies sodium bentonite, expect stronger trace acceleration and more water needed in the pre-dispersion slurry.",
-      },
-      {
-        claim: "Toxin-binding/allergen-blocking benefits are documented for different exposure routes (ingestion, leave-on lotion), not rinse-off soap",
-        confidence: "cross-referenced",
-      },
-      {
-        claim: "Documented crystalline-silica inhalation hazard in dry powder form",
-        confidence: "cross-referenced",
-        note: "From multiple manufacturer safety data sheets — more consistently flagged for bentonite than for kaolin.",
       },
     ],
   },
