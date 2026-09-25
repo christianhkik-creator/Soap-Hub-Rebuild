@@ -39,14 +39,20 @@ export async function saveRecipe(recipe: Recipe): Promise<Recipe> {
 
   if (supabase) {
     if (recipe.id) {
+      // maybeSingle (not single) because recipe.id can be a leftover from
+      // before Supabase was configured, when recipes were only ever saved
+      // to localStorage with a locally-generated id — that id was never
+      // actually inserted into this table, so the update matches zero rows.
+      // Treat that as "this is really a new recipe" and insert instead of
+      // surfacing a confusing save failure.
       const { data, error } = await supabase
         .from("recipes")
         .update({ name: recipe.name, data: recipe })
         .eq("id", recipe.id)
         .select()
-        .single();
+        .maybeSingle();
       if (error) throw error;
-      return { ...recipe, id: data.id, updatedAt: data.updated_at };
+      if (data) return { ...recipe, id: data.id, updatedAt: data.updated_at };
     }
     const { data, error } = await supabase
       .from("recipes")
