@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { FileText, Save, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { FileText, Plus, Save, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -13,11 +14,28 @@ import { isSupabaseConfigured } from "@/lib/supabase";
 import type { Recipe } from "@/lib/types";
 
 export default function RecipesPage() {
-  const { recipe, setRecipe, loadRecipe } = useRecipe();
+  const { recipe, setRecipe, loadRecipe, resetRecipe } = useRecipe();
+  const router = useRouter();
   const [saved, setSaved] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  const currentDraftHasProgress =
+    recipe.oils.length > 0 || recipe.scents.length > 0 || recipe.additives.length > 0;
+
+  function handleNewRecipe() {
+    if (
+      currentDraftHasProgress &&
+      !window.confirm(
+        "Start a new recipe? Your current unsaved working recipe will be cleared (already-saved recipes below are unaffected)."
+      )
+    ) {
+      return;
+    }
+    resetRecipe();
+    router.push("/recipe-builder");
+  }
 
   async function refresh() {
     setLoading(true);
@@ -73,18 +91,23 @@ export default function RecipesPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="font-display text-2xl font-semibold">My Recipes</h1>
-        <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-          Save your current working recipe, or load a saved one back into the builder.
-        </p>
-        {!isSupabaseConfigured && (
-          <p className="mt-2 max-w-2xl text-xs text-warning">
-            No Supabase project connected yet — recipes and any custom oils/scents/additives you add
-            are saved to this browser only (see .env.local.example). None of it will sync to your
-            phone until Supabase is configured — see the README.
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="font-display text-2xl font-semibold">My Recipes</h1>
+          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+            Save your current working recipe, or load a saved one back into the builder.
           </p>
-        )}
+          {!isSupabaseConfigured && (
+            <p className="mt-2 max-w-2xl text-xs text-warning">
+              No Supabase project connected yet — recipes and any custom oils/scents/additives you add
+              are saved to this browser only (see .env.local.example). None of it will sync to your
+              phone until Supabase is configured — see the README.
+            </p>
+          )}
+        </div>
+        <Button onClick={handleNewRecipe}>
+          <Plus /> New Recipe
+        </Button>
       </div>
 
       <Card>
